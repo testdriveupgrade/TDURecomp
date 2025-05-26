@@ -1,0 +1,1 @@
+for %%f in (*.png) do nvcompress -bc7 -highest -max-mip-count 1 "%%f" "../%%~nf.dds"

@@ -1,0 +1,6 @@
+add_subdirectory(${REBLUE_TOOLS_ROOT}/bc_diff)
+add_subdirectory(${REBLUE_TOOLS_ROOT}/file_to_c)
+add_subdirectory(${REBLUE_TOOLS_ROOT}/fshasher)
+add_subdirectory(${REBLUE_TOOLS_ROOT}/x_decompress)
+add_subdirectory(${REBLUE_TOOLS_ROOT}/XenonRecomp)
+add_subdirectory(${REBLUE_TOOLS_ROOT}/XenosRecomp)

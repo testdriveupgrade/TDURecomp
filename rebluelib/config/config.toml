@@ -1,0 +1,53 @@
+[main]
+file_path = "../private/default.xex"
+out_directory_path = "../ppc"
+switch_table_file_path = "jump_table.toml"
+
+skip_lr = false
+skip_msr = false
+ctr_as_local = false
+xer_as_local = false
+reserved_as_local = false
+cr_as_local = false
+non_argument_as_local = false
+non_volatile_as_local = false
+
+restgprlr_14_address = 0x826BFC90
+savegprlr_14_address = 0x826BFC40
+restfpr_14_address = 0x826C0D1C
+savefpr_14_address = 0x826C0CD0
+restvmx_14_address = 0x826C6DF8
+savevmx_14_address = 0x826C6B60
+restvmx_64_address = 0x826C6E8C
+savevmx_64_address = 0x826C6BF4
+
+setjmp_address = 0x826C5D00
+longjmp_address = 0x826C5AB0
+
+functions = [
+     { address = 0x821320F0, size = 0x000000DC },
+     { address = 0x8216C2F8, size = 0x000000EC },
+     { address = 0x82190EB8, size = 0x00000074 },
+     { address = 0x82198088, size = 0x000000B0 },
+     { address = 0x82198138, size = 0x000000A8 },
+     { address = 0x8224B970, size = 0x000000F4 },
+     { address = 0x822524B0, size = 0x000003c4 },
+     { address = 0x824E0818, size = 0x00000114 },
+     { address = 0x8260E608, size = 0x00000078 },
+     { address = 0x82665520, size = 0x00000068 },
+     { address = 0x82665588, size = 0x00000064 },
+     { address = 0x826655F0, size = 0x0000005C },
+     { address = 0x82665650, size = 0x00000198 },
+     { address = 0x826657E8, size = 0x0000016C },
+     { address = 0x826A2C50, size = 0x00000130 },
+     { address = 0x826A6570, size = 0x00000194 },
+     { address = 0x826A7D40, size = 0x0000009C },
+     { address = 0x826FE8D8, size = 0x00000074 },
+     { address = 0x82717578, size = 0x00000098 },
+     { address = 0x82344128, size = 0x000001E4 },
+     { address = 0x823A0B08, size = 0x00000314 },
+     { address = 0x82411D38, size = 0x0000081C },
+     { address = 0x8247CB10, size = 0x00000234 },
+     { address = 0x8252E5B8, size = 0x00000100 },
+     { address = 0x82598E90, size = 0x00000070 },
+]
