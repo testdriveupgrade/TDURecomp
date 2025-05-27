@@ -119,13 +119,13 @@ void XFreeMem(uint32_t baseAddress, uint32_t flags)
         g_userHeap.Free(g_memory.Translate(baseAddress));
 }
 
-GUEST_FUNCTION_STUB(sub_82BD7788); // HeapCreate
+GUEST_FUNCTION_STUB(sub_82468EF0); // HeapCreate
 GUEST_FUNCTION_STUB(sub_82BD9250); // HeapDestroy
 
-GUEST_FUNCTION_HOOK(sub_82BD7D30, RtlAllocateHeap);
-GUEST_FUNCTION_HOOK(sub_82BD8600, RtlFreeHeap);
-GUEST_FUNCTION_HOOK(sub_82BD88F0, RtlReAllocateHeap);
-GUEST_FUNCTION_HOOK(sub_82BD6FD0, RtlSizeHeap);
+GUEST_FUNCTION_HOOK(sub_824694A0, RtlAllocateHeap);
+GUEST_FUNCTION_HOOK(sub_82469D88, RtlFreeHeap);
+GUEST_FUNCTION_HOOK(sub_8246A070, RtlReAllocateHeap);
+GUEST_FUNCTION_HOOK(sub_82468738, RtlSizeHeap);
 
-GUEST_FUNCTION_HOOK(sub_831CC9C8, XAllocMem);
-GUEST_FUNCTION_HOOK(sub_831CCA60, XFreeMem);
+GUEST_FUNCTION_HOOK(sub_82466CC8, XAllocMem);
+GUEST_FUNCTION_HOOK(sub_82466D60, XFreeMem);
