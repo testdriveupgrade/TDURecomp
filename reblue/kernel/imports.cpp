@@ -1808,3 +1808,165 @@ GUEST_FUNCTION_HOOK(__imp__XMACreateContext, XMACreateContext);
 GUEST_FUNCTION_HOOK(__imp__XAudioRegisterRenderDriverClient, XAudioRegisterRenderDriverClient);
 GUEST_FUNCTION_HOOK(__imp__XAudioUnregisterRenderDriverClient, XAudioUnregisterRenderDriverClient);
 GUEST_FUNCTION_HOOK(__imp__XAudioSubmitRenderDriverFrame, XAudioSubmitRenderDriverFrame);
+
+void XNotifyPositionUI()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+GUEST_FUNCTION_HOOK(__imp__XNotifyPositionUI, XNotifyPositionUI);
+
+void ExAllocatePool()
+{
+    LOG_UTILITY("!!! STUB [ExAllocatePool]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__ExAllocatePool, ExAllocatePool);
+
+void IoDismountVolumeByFileHandle()
+{
+    LOG_UTILITY("!!! STUB [IoDismountVolumeByFileHandle]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__IoDismountVolumeByFileHandle, IoDismountVolumeByFileHandle);
+
+void KeTryToAcquireSpinLockAtRaisedIrql()
+{
+    LOG_UTILITY("!!! STUB [KeTryToAcquireSpinLockAtRaisedIrql]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__KeTryToAcquireSpinLockAtRaisedIrql, KeTryToAcquireSpinLockAtRaisedIrql);
+
+void NtCreateMutant()
+{
+    LOG_UTILITY("!!! STUB [NtCreateMutant]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__NtCreateMutant, NtCreateMutant);
+
+void NtDeviceIoControlFile()
+{
+    LOG_UTILITY("!!! STUB [NtDeviceIoControlFile]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__NtDeviceIoControlFile, NtDeviceIoControlFile);
+
+void NtReleaseMutant()
+{
+    LOG_UTILITY("!!! STUB [NtReleaseMutant]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__NtReleaseMutant, NtReleaseMutant);
+
+void XamAlloc()
+{
+    LOG_UTILITY("!!! STUB [XamAlloc]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__XamAlloc, XamAlloc);
+
+void XamContentSetThumbnail()
+{
+    LOG_UTILITY("!!! STUB [XamContentSetThumbnail]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__XamContentSetThumbnail, XamContentSetThumbnail);
+
+void XamFree()
+{
+    LOG_UTILITY("!!! STUB [XamFree]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__XamFree, XamFree);
+
+void XamLoaderGetDvdTrayState()
+{
+    LOG_UTILITY("!!! STUB [XamLoaderGetDvdTrayState]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__XamLoaderGetDvdTrayState, XamLoaderGetDvdTrayState);
+
+void XamTaskCloseHandle()
+{
+    LOG_UTILITY("!!! STUB [XamTaskCloseHandle]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__XamTaskCloseHandle, XamTaskCloseHandle);
+
+void XamTaskSchedule()
+{
+    LOG_UTILITY("!!! STUB [XamTaskSchedule]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__XamTaskSchedule, XamTaskSchedule);
+
+void XamTaskShouldExit()
+{
+    LOG_UTILITY("!!! STUB [XamTaskShouldExit]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__XamTaskShouldExit, XamTaskShouldExit);
+
+void XamUserCreateAchievementEnumerator()
+{
+    LOG_UTILITY("!!! STUB [XamUserCreateAchievementEnumerator]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__XamUserCreateAchievementEnumerator, XamUserCreateAchievementEnumerator);
+
+void XamUserGetName()
+{
+    LOG_UTILITY("!!! STUB [XamUserGetName]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__XamUserGetName, XamUserGetName);
+
+void XamUserGetXUID()
+{
+    LOG_UTILITY("!!! STUB [XamUserGetXUID]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__XamUserGetXUID, XamUserGetXUID);
+
+void XamUserWriteProfileSettings()
+{
+    LOG_UTILITY("!!! STUB [XamUserWriteProfileSettings]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__XamUserWriteProfileSettings, XamUserWriteProfileSettings);
+
+void XeKeysConsolePrivateKeySign()
+{
+    LOG_UTILITY("!!! STUB [XeKeysConsolePrivateKeySign]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__XeKeysConsolePrivateKeySign, XeKeysConsolePrivateKeySign);
+
+void XeKeysConsoleSignatureVerification()
+{
+    LOG_UTILITY("!!! STUB [XeKeysConsoleSignatureVerification]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__XeKeysConsoleSignatureVerification, XeKeysConsoleSignatureVerification);
+
+void XexLoadImageHeaders()
+{
+    LOG_UTILITY("!!! STUB [XexLoadImageHeaders]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__XexLoadImageHeaders, XexLoadImageHeaders);
+
+void IoDismountVolumeByName()
+{
+    LOG_UTILITY("!!! STUB [IoDismountVolumeByName]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__IoDismountVolumeByName, IoDismountVolumeByName);
+
+void IoSynchronousDeviceIoControlRequest()
+{
+    LOG_UTILITY("!!! STUB [IoSynchronousDeviceIoControlRequest]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__IoSynchronousDeviceIoControlRequest, IoSynchronousDeviceIoControlRequest);
+
+void NtPulseEvent()
+{
+    LOG_UTILITY("!!! STUB [NtPulseEvent]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__NtPulseEvent, NtPulseEvent);
+
+void NtYieldExecution()
+{
+    LOG_UTILITY("!!! STUB [NtYieldExecution]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__NtYieldExecution, NtYieldExecution);
+
+void ObOpenObjectByName()
+{
+    LOG_UTILITY("!!! STUB [ObOpenObjectByName]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__ObOpenObjectByName, ObOpenObjectByName);
+
+void ObReferenceObjectByName()
+{
+    LOG_UTILITY("!!! STUB [ObReferenceObjectByName]!!!");
+}
+GUEST_FUNCTION_HOOK(__imp__ObReferenceObjectByName, ObReferenceObjectByName);
