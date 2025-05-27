@@ -1811,162 +1811,181 @@ GUEST_FUNCTION_HOOK(__imp__XAudioSubmitRenderDriverFrame, XAudioSubmitRenderDriv
 
 void XNotifyPositionUI()
 {
-    LOG_UTILITY("!!! STUB !!!");
+    assert(false && "XNotifyPositionUI not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__XNotifyPositionUI, XNotifyPositionUI);
 
-void ExAllocatePool()
+uint32_t ExAllocatePool(uint32_t size)
 {
-    LOG_UTILITY("!!! STUB [ExAllocatePool]!!!");
+    void* ptr = g_userHeap.Alloc(size);
+    return g_memory.MapVirtual(ptr);
 }
 GUEST_FUNCTION_HOOK(__imp__ExAllocatePool, ExAllocatePool);
 
 void IoDismountVolumeByFileHandle()
 {
-    LOG_UTILITY("!!! STUB [IoDismountVolumeByFileHandle]!!!");
+    assert(false && "IoDismountVolumeByFileHandle not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__IoDismountVolumeByFileHandle, IoDismountVolumeByFileHandle);
 
-void KeTryToAcquireSpinLockAtRaisedIrql()
+uint32_t KeTryToAcquireSpinLockAtRaisedIrql(uint32_t* spinLock)
 {
-    LOG_UTILITY("!!! STUB [KeTryToAcquireSpinLockAtRaisedIrql]!!!");
+    std::atomic_ref spinLockRef(*spinLock);
+    uint32_t expected = 0;
+    return spinLockRef.compare_exchange_weak(expected, g_ppcContext->r13.u32);
 }
 GUEST_FUNCTION_HOOK(__imp__KeTryToAcquireSpinLockAtRaisedIrql, KeTryToAcquireSpinLockAtRaisedIrql);
 
 void NtCreateMutant()
 {
-    LOG_UTILITY("!!! STUB [NtCreateMutant]!!!");
+    assert(false && "NtCreateMutant not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__NtCreateMutant, NtCreateMutant);
 
 void NtDeviceIoControlFile()
 {
-    LOG_UTILITY("!!! STUB [NtDeviceIoControlFile]!!!");
+    assert(false && "NtDeviceIoControlFile not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__NtDeviceIoControlFile, NtDeviceIoControlFile);
 
 void NtReleaseMutant()
 {
-    LOG_UTILITY("!!! STUB [NtReleaseMutant]!!!");
+    assert(false && "NtReleaseMutant not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__NtReleaseMutant, NtReleaseMutant);
 
-void XamAlloc()
+uint32_t XamAlloc(uint32_t size)
 {
-    LOG_UTILITY("!!! STUB [XamAlloc]!!!");
+    void* ptr = g_userHeap.Alloc(size);
+    return g_memory.MapVirtual(ptr);
 }
 GUEST_FUNCTION_HOOK(__imp__XamAlloc, XamAlloc);
 
 void XamContentSetThumbnail()
 {
-    LOG_UTILITY("!!! STUB [XamContentSetThumbnail]!!!");
+    assert(false && "XamContentSetThumbnail not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__XamContentSetThumbnail, XamContentSetThumbnail);
 
-void XamFree()
+void XamFree(uint32_t ptr)
 {
-    LOG_UTILITY("!!! STUB [XamFree]!!!");
+    if (ptr != NULL)
+        g_userHeap.Free(g_memory.Translate(ptr));
 }
 GUEST_FUNCTION_HOOK(__imp__XamFree, XamFree);
 
-void XamLoaderGetDvdTrayState()
+uint32_t XamLoaderGetDvdTrayState()
 {
-    LOG_UTILITY("!!! STUB [XamLoaderGetDvdTrayState]!!!");
+    return 0; // 0 = closed
 }
 GUEST_FUNCTION_HOOK(__imp__XamLoaderGetDvdTrayState, XamLoaderGetDvdTrayState);
 
 void XamTaskCloseHandle()
 {
-    LOG_UTILITY("!!! STUB [XamTaskCloseHandle]!!!");
+    assert(false && "XamTaskCloseHandle not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__XamTaskCloseHandle, XamTaskCloseHandle);
 
 void XamTaskSchedule()
 {
-    LOG_UTILITY("!!! STUB [XamTaskSchedule]!!!");
+    assert(false && "XamTaskSchedule not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__XamTaskSchedule, XamTaskSchedule);
 
 void XamTaskShouldExit()
 {
-    LOG_UTILITY("!!! STUB [XamTaskShouldExit]!!!");
+    assert(false && "XamTaskShouldExit not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__XamTaskShouldExit, XamTaskShouldExit);
 
 void XamUserCreateAchievementEnumerator()
 {
-    LOG_UTILITY("!!! STUB [XamUserCreateAchievementEnumerator]!!!");
+    assert(false && "XamUserCreateAchievementEnumerator not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__XamUserCreateAchievementEnumerator, XamUserCreateAchievementEnumerator);
 
-void XamUserGetName()
+uint32_t XamUserGetName(uint32_t userIndex, char* userName, uint32_t userNameLength)
 {
-    LOG_UTILITY("!!! STUB [XamUserGetName]!!!");
+    if (userIndex == 0 && userName != nullptr && userNameLength > 0)
+    {
+        strncpy(userName, "Player", userNameLength - 1);
+        userName[userNameLength - 1] = '\0';
+        return 0;
+    }
+    return 0x00000525; // ERROR_NO_SUCH_USER
 }
 GUEST_FUNCTION_HOOK(__imp__XamUserGetName, XamUserGetName);
 
-void XamUserGetXUID()
+uint32_t XamUserGetXUID(uint32_t userIndex, be<uint64_t>* xuid)
 {
-    LOG_UTILITY("!!! STUB [XamUserGetXUID]!!!");
+    if (userIndex == 0 && xuid != nullptr)
+    {
+        *xuid = 0xB13EBABEBABEBABE;
+        return 0;
+    }
+    return 0x00000525; // ERROR_NO_SUCH_USER
 }
 GUEST_FUNCTION_HOOK(__imp__XamUserGetXUID, XamUserGetXUID);
 
 void XamUserWriteProfileSettings()
 {
-    LOG_UTILITY("!!! STUB [XamUserWriteProfileSettings]!!!");
+    assert(false && "XamUserWriteProfileSettings not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__XamUserWriteProfileSettings, XamUserWriteProfileSettings);
 
 void XeKeysConsolePrivateKeySign()
 {
-    LOG_UTILITY("!!! STUB [XeKeysConsolePrivateKeySign]!!!");
+    assert(false && "XeKeysConsolePrivateKeySign not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__XeKeysConsolePrivateKeySign, XeKeysConsolePrivateKeySign);
 
 void XeKeysConsoleSignatureVerification()
 {
-    LOG_UTILITY("!!! STUB [XeKeysConsoleSignatureVerification]!!!");
+    assert(false && "XeKeysConsoleSignatureVerification not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__XeKeysConsoleSignatureVerification, XeKeysConsoleSignatureVerification);
 
 void XexLoadImageHeaders()
 {
-    LOG_UTILITY("!!! STUB [XexLoadImageHeaders]!!!");
+    assert(false && "XexLoadImageHeaders not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__XexLoadImageHeaders, XexLoadImageHeaders);
 
 void IoDismountVolumeByName()
 {
-    LOG_UTILITY("!!! STUB [IoDismountVolumeByName]!!!");
+    assert(false && "IoDismountVolumeByName not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__IoDismountVolumeByName, IoDismountVolumeByName);
 
 void IoSynchronousDeviceIoControlRequest()
 {
-    LOG_UTILITY("!!! STUB [IoSynchronousDeviceIoControlRequest]!!!");
+    assert(false && "IoSynchronousDeviceIoControlRequest not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__IoSynchronousDeviceIoControlRequest, IoSynchronousDeviceIoControlRequest);
 
-void NtPulseEvent()
+uint32_t NtPulseEvent(Event* handle, uint32_t* previousState)
 {
-    LOG_UTILITY("!!! STUB [NtPulseEvent]!!!");
+    handle->Set();
+    handle->Reset();
+    return 0;
 }
 GUEST_FUNCTION_HOOK(__imp__NtPulseEvent, NtPulseEvent);
 
-void NtYieldExecution()
+uint32_t NtYieldExecution()
 {
-    LOG_UTILITY("!!! STUB [NtYieldExecution]!!!");
+    std::this_thread::yield();
+    return STATUS_SUCCESS;
 }
 GUEST_FUNCTION_HOOK(__imp__NtYieldExecution, NtYieldExecution);
 
 void ObOpenObjectByName()
 {
-    LOG_UTILITY("!!! STUB [ObOpenObjectByName]!!!");
+    assert(false && "ObOpenObjectByName not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__ObOpenObjectByName, ObOpenObjectByName);
 
 void ObReferenceObjectByName()
 {
-    LOG_UTILITY("!!! STUB [ObReferenceObjectByName]!!!");
+    assert(false && "ObReferenceObjectByName not implemented");
 }
 GUEST_FUNCTION_HOOK(__imp__ObReferenceObjectByName, ObReferenceObjectByName);
