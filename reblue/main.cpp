@@ -312,12 +312,11 @@ int main(int argc, char *argv[])
     //    Config::Save();
     //}
 
-    if (Config::ShowConsole)
-        os::process::ShowConsole();
+    os::process::ShowConsole();
 
     HostStartup();
 
-    std::filesystem::path modulePath;
+    std::filesystem::path modulePath = "P:/x360/reblue-game/default.xex";
     bool isGameInstalled = true;// Installer::checkGameInstall(GAME_INSTALL_DIRECTORY, modulePath);
     bool runInstallerWizard = forceInstaller || forceDLCInstaller || !isGameInstalled;
     //if (runInstallerWizard)
