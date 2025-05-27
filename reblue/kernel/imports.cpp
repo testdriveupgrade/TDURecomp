@@ -1811,7 +1811,7 @@ GUEST_FUNCTION_HOOK(__imp__XAudioSubmitRenderDriverFrame, XAudioSubmitRenderDriv
 
 void XNotifyPositionUI()
 {
-    assert(false && "XNotifyPositionUI not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__XNotifyPositionUI, XNotifyPositionUI);
 
@@ -1824,7 +1824,7 @@ GUEST_FUNCTION_HOOK(__imp__ExAllocatePool, ExAllocatePool);
 
 void IoDismountVolumeByFileHandle()
 {
-    assert(false && "IoDismountVolumeByFileHandle not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__IoDismountVolumeByFileHandle, IoDismountVolumeByFileHandle);
 
@@ -1838,19 +1838,19 @@ GUEST_FUNCTION_HOOK(__imp__KeTryToAcquireSpinLockAtRaisedIrql, KeTryToAcquireSpi
 
 void NtCreateMutant()
 {
-    assert(false && "NtCreateMutant not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__NtCreateMutant, NtCreateMutant);
 
 void NtDeviceIoControlFile()
 {
-    assert(false && "NtDeviceIoControlFile not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__NtDeviceIoControlFile, NtDeviceIoControlFile);
 
 void NtReleaseMutant()
 {
-    assert(false && "NtReleaseMutant not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__NtReleaseMutant, NtReleaseMutant);
 
@@ -1863,7 +1863,7 @@ GUEST_FUNCTION_HOOK(__imp__XamAlloc, XamAlloc);
 
 void XamContentSetThumbnail()
 {
-    assert(false && "XamContentSetThumbnail not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__XamContentSetThumbnail, XamContentSetThumbnail);
 
@@ -1882,25 +1882,25 @@ GUEST_FUNCTION_HOOK(__imp__XamLoaderGetDvdTrayState, XamLoaderGetDvdTrayState);
 
 void XamTaskCloseHandle()
 {
-    assert(false && "XamTaskCloseHandle not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__XamTaskCloseHandle, XamTaskCloseHandle);
 
 void XamTaskSchedule()
 {
-    assert(false && "XamTaskSchedule not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__XamTaskSchedule, XamTaskSchedule);
 
 void XamTaskShouldExit()
 {
-    assert(false && "XamTaskShouldExit not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__XamTaskShouldExit, XamTaskShouldExit);
 
 void XamUserCreateAchievementEnumerator()
 {
-    assert(false && "XamUserCreateAchievementEnumerator not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__XamUserCreateAchievementEnumerator, XamUserCreateAchievementEnumerator);
 
@@ -1929,37 +1929,37 @@ GUEST_FUNCTION_HOOK(__imp__XamUserGetXUID, XamUserGetXUID);
 
 void XamUserWriteProfileSettings()
 {
-    assert(false && "XamUserWriteProfileSettings not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__XamUserWriteProfileSettings, XamUserWriteProfileSettings);
 
 void XeKeysConsolePrivateKeySign()
 {
-    assert(false && "XeKeysConsolePrivateKeySign not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__XeKeysConsolePrivateKeySign, XeKeysConsolePrivateKeySign);
 
 void XeKeysConsoleSignatureVerification()
 {
-    assert(false && "XeKeysConsoleSignatureVerification not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__XeKeysConsoleSignatureVerification, XeKeysConsoleSignatureVerification);
 
 void XexLoadImageHeaders()
 {
-    assert(false && "XexLoadImageHeaders not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__XexLoadImageHeaders, XexLoadImageHeaders);
 
 void IoDismountVolumeByName()
 {
-    assert(false && "IoDismountVolumeByName not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__IoDismountVolumeByName, IoDismountVolumeByName);
 
 void IoSynchronousDeviceIoControlRequest()
 {
-    assert(false && "IoSynchronousDeviceIoControlRequest not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__IoSynchronousDeviceIoControlRequest, IoSynchronousDeviceIoControlRequest);
 
@@ -1980,12 +1980,12 @@ GUEST_FUNCTION_HOOK(__imp__NtYieldExecution, NtYieldExecution);
 
 void ObOpenObjectByName()
 {
-    assert(false && "ObOpenObjectByName not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__ObOpenObjectByName, ObOpenObjectByName);
 
 void ObReferenceObjectByName()
 {
-    assert(false && "ObReferenceObjectByName not implemented");
+    LOG_UTILITY("!!! STUB !!!");
 }
 GUEST_FUNCTION_HOOK(__imp__ObReferenceObjectByName, ObReferenceObjectByName);
