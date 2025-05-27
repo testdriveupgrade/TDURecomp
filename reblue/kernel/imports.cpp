@@ -616,12 +616,12 @@ void NtDuplicateObject()
     LOG_UTILITY("!!! STUB !!!");
 }
 
-void NtAllocateVirtualMemory()
+uint32_t NtAllocateVirtualMemory(uint32_t processHandle, be<uint32_t>* baseAddress, uint32_t zeroBits, be<uint32_t>* regionSize, uint32_t allocationType, uint32_t protect)
 {
     LOG_UTILITY("!!! STUB !!!");
 }
 
-void NtFreeVirtualMemory()
+uint32_t NtFreeVirtualMemory(uint32_t processHandle, be<uint32_t>* baseAddress, be<uint32_t>* regionSize, uint32_t freeType)
 {
     LOG_UTILITY("!!! STUB !!!");
 }
