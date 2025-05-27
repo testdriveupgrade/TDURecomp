@@ -49,11 +49,11 @@ void GlobalMemoryStatusImpl(XLPMEMORYSTATUS lpMemoryStatus)
 //GUEST_FUNCTION_STUB(sub_82BD4CA8);
 //#endif
 //
-//GUEST_FUNCTION_HOOK(sub_82BD4AC8, QueryPerformanceCounterImpl);
-//GUEST_FUNCTION_HOOK(sub_831CD040, QueryPerformanceFrequencyImpl);
-//GUEST_FUNCTION_HOOK(sub_831CDAD0, GetTickCountImpl);
-//
-//GUEST_FUNCTION_HOOK(sub_82BD4BC0, GlobalMemoryStatusImpl);
+GUEST_FUNCTION_HOOK(sub_824665A0, QueryPerformanceCounterImpl);
+GUEST_FUNCTION_HOOK(sub_82466568, QueryPerformanceFrequencyImpl);
+GUEST_FUNCTION_HOOK(sub_8248D098, GetTickCountImpl);
+
+GUEST_FUNCTION_HOOK(sub_8248CED0, GlobalMemoryStatusImpl);
 //
 //// sprintf
 //PPC_FUNC(sub_82BD4AE8)
