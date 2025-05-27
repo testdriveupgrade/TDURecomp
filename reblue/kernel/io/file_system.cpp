@@ -49,12 +49,12 @@ struct FindHandle : KernelObject
 
             for (size_t i = 0; ; i++)
             {
-                auto* includeDirs = ModLoader::GetIncludeDirectories(i);
-                if (includeDirs == nullptr)
+                //auto* includeDirs = nullptr;// ModLoader::GetIncludeDirectories(i);
+                //if (includeDirs == nullptr)
                     break;
 
-                for (auto& includeDir : *includeDirs)
-                    addDirectory(includeDir / pathStr);
+                //for (auto& includeDir : *includeDirs)
+                //    addDirectory(includeDir / pathStr);
             }
         }
 
@@ -363,18 +363,18 @@ uint32_t XWriteFile(FileHandle* hFile, const void* lpBuffer, uint32_t nNumberOfB
 
 std::filesystem::path FileSystem::ResolvePath(const std::string_view& path, bool checkForMods)
 {
-    if (checkForMods)
-    {
-        std::filesystem::path resolvedPath = ModLoader::ResolvePath(path);
+    //if (checkForMods)
+    //{
+    //    std::filesystem::path resolvedPath = ModLoader::ResolvePath(path);
 
-        if (!resolvedPath.empty())
-        {
-            if (ModLoader::s_isLogTypeConsole)
-                LOGF_IMPL(Utility, "Mod Loader", "Loading file: \"{}\"", reinterpret_cast<const char*>(resolvedPath.u8string().c_str()));
+    //    if (!resolvedPath.empty())
+    //    {
+    //        if (ModLoader::s_isLogTypeConsole)
+    //            LOGF_IMPL(Utility, "Mod Loader", "Loading file: \"{}\"", reinterpret_cast<const char*>(resolvedPath.u8string().c_str()));
 
-            return resolvedPath;
-        }
-    }
+    //        return resolvedPath;
+    //    }
+    //}
 
     thread_local std::string builtPath;
     builtPath.clear();

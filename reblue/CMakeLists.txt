@@ -97,7 +97,7 @@ set(REBLUE_UI_CXX_SOURCES
 #    "ui/button_guide.cpp"
 #    "ui/fader.cpp"
     "ui/game_window.cpp"
-    "ui/imgui_utils.cpp"
+#    "ui/imgui_utils.cpp"
 #    "ui/installer_wizard.cpp"
 #    "ui/message_window.cpp"
 #    "ui/options_menu.cpp"
@@ -122,7 +122,7 @@ set(REBLUE_INSTALL_CXX_SOURCES
 
 set(REBLUE_USER_CXX_SOURCES
     "user/achievement_data.cpp"
-    "user/achievement_manager.cpp"
+    #"user/achievement_manager.cpp"
     "user/config.cpp"
     "user/registry.cpp"
     "user/paths.cpp"

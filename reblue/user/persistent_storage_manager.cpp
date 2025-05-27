@@ -20,16 +20,16 @@ bool PersistentStorageManager::ShouldDisplayDLCMessage(bool setOffendingDLCFlag)
 
     auto result = false;
 
-    for (auto& pair : flags)
-    {
-        if (!Data.DLCFlags[(int)pair.first] && Installer::checkDLCInstall(GetGamePath(), pair.second))
-        {
-            if (setOffendingDLCFlag)
-                Data.DLCFlags[(int)pair.first] = true;
+    //for (auto& pair : flags)
+    //{
+    //    if (!Data.DLCFlags[(int)pair.first] && Installer::checkDLCInstall(GetGamePath(), pair.second))
+    //    {
+    //        if (setOffendingDLCFlag)
+    //            Data.DLCFlags[(int)pair.first] = true;
 
-            result = true;
-        }
-    }
+    //        result = true;
+    //    }
+    //}
 
     return result;
 }
