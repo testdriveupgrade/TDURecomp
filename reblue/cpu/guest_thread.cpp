@@ -169,7 +169,6 @@ uint32_t SetThreadIdealProcessorImpl(GuestThreadHandle* hThread, uint32_t dwIdea
 }
 
 GUEST_FUNCTION_HOOK(sub_82DFA2E8, SetThreadNameImpl);
-GUEST_FUNCTION_HOOK(sub_82BD57A8, GetThreadPriorityImpl);
-GUEST_FUNCTION_HOOK(sub_82BD5910, SetThreadIdealProcessorImpl);
+GUEST_FUNCTION_HOOK(sub_82466E00, GetThreadPriorityImpl);
+GUEST_FUNCTION_HOOK(sub_82466EF0, SetThreadIdealProcessorImpl);
 
-GUEST_FUNCTION_STUB(sub_82BD58F8); // Some function that updates the TEB, don't really care since the field is not set
