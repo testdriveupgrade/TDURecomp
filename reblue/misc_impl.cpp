@@ -44,7 +44,7 @@ void GlobalMemoryStatusImpl(XLPMEMORYSTATUS lpMemoryStatus)
 //GUEST_FUNCTION_HOOK(sub_831CCAA0, memset);
 //
 //#ifdef _WIN32
-//GUEST_FUNCTION_HOOK(sub_82BD4CA8, OutputDebugStringA);
+GUEST_FUNCTION_HOOK(sub_8248D058, OutputDebugStringA);
 //#else
 //GUEST_FUNCTION_STUB(sub_82BD4CA8);
 //#endif
