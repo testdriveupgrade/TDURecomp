@@ -1,11 +1,8 @@
 #include "app.h"
 
 #include <gpu/video.h>
-#include <install/installer.h>
 #include <kernel/function.h>
 #include <os/process.h>
-#include <patches/audio_patches.h>
-#include <patches/inspire_patches.h>
 #include <ui/game_window.h>
 #include <user/config.h>
 #include <user/paths.h>

@@ -1,20 +1,19 @@
 #include "file_system.h"
 #include <cpu/guest_thread.h>
 #include <kernel/xam.h>
-#include <kernel/xdm.h>
 #include <kernel/function.h>
-#include <mod/mod_loader.h>
 #include <os/logger.h>
 #include <user/config.h>
 #include <stdafx.h>
+#include <kernel/kernel.h>
 
-struct FileHandle : KernelObject
+struct FileHandle : reblue::kernel::KernelObject
 {
     std::fstream stream;
     std::filesystem::path path;
 };
 
-struct FindHandle : KernelObject
+struct FindHandle : reblue::kernel::KernelObject
 {
     std::error_code ec;
     ankerl::unordered_dense::map<std::u8string, std::pair<size_t, bool>> searchResult; // Relative path, file size, is directory
@@ -112,10 +111,10 @@ FileHandle* XCreateFileA
 #ifdef _WIN32
         GuestThread::SetLastError(GetLastError());
 #endif
-        return GetInvalidKernelObject<FileHandle>();
+        return reblue::kernel::GetInvalidKernelObject<FileHandle>();
     }
 
-    FileHandle *fileHandle = CreateKernelObject<FileHandle>();
+    FileHandle *fileHandle = reblue::kernel::CreateKernelObject<FileHandle>();
     fileHandle->stream = std::move(fileStream);
     fileHandle->path = std::move(filePath);
     return fileHandle;
@@ -288,11 +287,11 @@ FindHandle* XFindFirstFileA(const char* lpFileName, WIN32_FIND_DATAA* lpFindFile
     FindHandle findHandle(path);
 
     if (findHandle.searchResult.empty())
-        return GetInvalidKernelObject<FindHandle>();
+        return reblue::kernel::GetInvalidKernelObject<FindHandle>();
 
     findHandle.fillFindData(lpFindFileData);
 
-    return CreateKernelObject<FindHandle>(std::move(findHandle));
+    return reblue::kernel::CreateKernelObject<FindHandle>(std::move(findHandle));
 }
 
 uint32_t XFindNextFileA(FindHandle* Handle, WIN32_FIND_DATAA* lpFindFileData)
@@ -394,7 +393,7 @@ std::filesystem::path FileSystem::ResolvePath(const std::string_view& path, bool
         if (path.starts_with("game:\\work\\"))
             root = "update";
 
-        const auto newRoot = XamGetRootPath(root);
+        const auto newRoot = reblue::kernel::XamGetRootPath(root);
 
         if (!newRoot.empty())
         {

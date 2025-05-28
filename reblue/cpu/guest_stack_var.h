@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ppc_context.h"
-#include <kernel/memory.h>
+#include <kernel/kernel.h>
 
 // DO NOT use this type as anything other than a local variable.
 // This includes returning. It'll cause memory to leak in the guest stack!
@@ -24,12 +24,12 @@ private:
 public:
     T* get()
     {
-        return reinterpret_cast<T*>(g_memory.Translate(m_ptr));
+        return reinterpret_cast<T*>(reblue::kernel::g_memory.Translate(m_ptr));
     }
 
     const T* get() const
     {
-        return reinterpret_cast<const T*>(g_memory.Translate(m_ptr));
+        return reinterpret_cast<const T*>(reblue::kernel::g_memory.Translate(m_ptr));
     }
 
     template<typename... Args>

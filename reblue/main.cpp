@@ -3,8 +3,7 @@
 #include <cpu/guest_thread.h>
 #include <gpu/video.h>
 #include <kernel/function.h>
-#include <kernel/memory.h>
-#include <kernel/heap.h>
+#include <kernel/kernel.h>
 #include <kernel/xam.h>
 #include <kernel/io/file_system.h>
 #include <file.h>
@@ -20,7 +19,6 @@
 #include <os/process.h>
 #include <os/registry.h>
 #include <ui/game_window.h>
-#include <mod/mod_loader.h>
 #include <preload_executable.h>
 
 #ifdef _WIN32
@@ -38,26 +36,10 @@ static std::array<std::string_view, 3> g_D3D12RequiredModules =
 
 const size_t XMAIOBegin = 0x7FEA0000;
 const size_t XMAIOEnd = XMAIOBegin + 0x0000FFFF;
-
-Memory g_memory;
-Heap g_userHeap;
+reblue::kernel::GuestMemory reblue::kernel::g_memory;
+reblue::kernel::GuestHeap reblue::kernel::g_userHeap;
 XDBFWrapper g_xdbfWrapper;
 std::unordered_map<uint16_t, GuestTexture*> g_xdbfTextureCache;
-
-void HostStartup()
-{
-#ifdef _WIN32
-    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-#endif
-
-    hid::Init();
-}
-
-// Name inspired from nt's entry point
-void KiSystemStartup()
-{
-
-}
 
 uint32_t LdrLoadModule(const std::filesystem::path &path)
 {
@@ -75,7 +57,7 @@ uint32_t LdrLoadModule(const std::filesystem::path &path)
     ByteSwapInplace(entry);
 
     auto srcData = loadResult.data() + header->headerSize;
-    auto destData = reinterpret_cast<uint8_t*>(g_memory.Translate(security->loadAddress));
+    auto destData = reinterpret_cast<uint8_t*>(reblue::kernel::g_memory.Translate(security->loadAddress));
 
     if (fileFormatInfo->compressionType == XEX_COMPRESSION_NONE)
     {
@@ -104,7 +86,7 @@ uint32_t LdrLoadModule(const std::filesystem::path &path)
 
     auto res = reinterpret_cast<const Xex2ResourceInfo*>(getOptHeaderPtr(loadResult.data(), XEX_HEADER_RESOURCE_INFO));
 
-    g_xdbfWrapper = XDBFWrapper((uint8_t*)g_memory.Translate(res->offset.get()), res->sizeOfData);
+    g_xdbfWrapper = XDBFWrapper((uint8_t*)reblue::kernel::g_memory.Translate(res->offset.get()), res->sizeOfData);
 
     return entry;
 }
@@ -155,22 +137,8 @@ int main(int argc, char *argv[])
     bool graphicsApiRetry = false;
     const char *sdlVideoDriver = nullptr;
 
-    //for (uint32_t i = 1; i < argc; i++)
-    //{
-    //    forceInstaller = forceInstaller || (strcmp(argv[i], "--install") == 0);
-    //    forceDLCInstaller = forceDLCInstaller || (strcmp(argv[i], "--install-dlc") == 0);
-    //    useDefaultWorkingDirectory = useDefaultWorkingDirectory || (strcmp(argv[i], "--use-cwd") == 0);
-    //    forceInstallationCheck = forceInstallationCheck || (strcmp(argv[i], "--install-check") == 0);
-    //    graphicsApiRetry = graphicsApiRetry || (strcmp(argv[i], "--graphics-api-retry") == 0);
-
-    //    if (strcmp(argv[i], "--sdl-video-driver") == 0)
-    //    {
-    //        if ((i + 1) < argc)
-    //            sdlVideoDriver = argv[++i];
-    //        else
-    //            LOGN_WARNING("No argument was specified for --sdl-video-driver. Option will be ignored.");
-    //    }
-    //}
+    // bootleg paths
+    std::filesystem::path reblueBinPath = "P:\\x360\\reblue-game\\bin";
 
     if (!useDefaultWorkingDirectory)
     {
@@ -185,7 +153,7 @@ int main(int argc, char *argv[])
 #if defined(_WIN32) && defined(UNLEASHED_RECOMP_D3D12)
     for (auto& dll : g_D3D12RequiredModules)
     {
-        if (!std::filesystem::exists(g_executableRoot / dll))
+        if (!std::filesystem::exists(reblueBinPath / dll))
         {
             char text[512];
             snprintf(text, sizeof(text), Localise("System_Win32_MissingDLLs").c_str(), dll.data());
@@ -197,9 +165,13 @@ int main(int argc, char *argv[])
 
     os::process::ShowConsole();
 
-    HostStartup();
+#ifdef _WIN32
+    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+#endif
 
-    std::filesystem::path modulePath = "P:/x360/reblue-game/default_unencrypted.xex";
+    hid::Init();
+
+    std::filesystem::path modulePath = reblueBinPath.append("default.xex");
     bool isGameInstalled = true;// Installer::checkGameInstall(GAME_INSTALL_DIRECTORY, modulePath);
     bool runInstallerWizard = forceInstaller || forceDLCInstaller || !isGameInstalled;
     //if (runInstallerWizard)
@@ -221,22 +193,22 @@ int main(int argc, char *argv[])
     if (!PersistentStorageManager::LoadBinary())
         LOGFN_ERROR("Failed to load persistent storage binary... (status code {})", (int)PersistentStorageManager::BinStatus);
 
-    if (g_memory.base == nullptr)
+    if (reblue::kernel::g_memory.base == nullptr)
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, GameWindow::GetTitle(), Localise("System_MemoryAllocationFailed").c_str(), GameWindow::s_pWindow);
         std::_Exit(1);
     }
 
-    g_userHeap.Init();
+    reblue::kernel::g_userHeap.Init();
 
-    const auto gameContent = XamMakeContent(XCONTENTTYPE_RESERVED, "Game");
-    XamRegisterContent(gameContent, "P:/x360/reblue-game/game");
+    const auto gameContent = reblue::kernel::XamMakeContent(XCONTENTTYPE_RESERVED, "Game");
+    reblue::kernel::XamRegisterContent(gameContent, "P:/x360/reblue-game/game");
 
     // Mount game
-    XamContentCreateEx(0, "game", &gameContent, OPEN_EXISTING, nullptr, nullptr, 0, 0, nullptr);
+    reblue::kernel::XamContentCreateEx(0, "game", &gameContent, OPEN_EXISTING, nullptr, nullptr, 0, 0, nullptr);
 
     // OS mounts game data to D:
-    XamContentCreateEx(0, "D", &gameContent, OPEN_EXISTING, nullptr, nullptr, 0, 0, nullptr);
+    reblue::kernel::XamContentCreateEx(0, "D", &gameContent, OPEN_EXISTING, nullptr, nullptr, 0, 0, nullptr);
 
     XAudioInitializeSystem();
 
@@ -258,11 +230,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-GUEST_FUNCTION_STUB(__imp__vsprintf);
-GUEST_FUNCTION_STUB(__imp___vsnprintf);
-GUEST_FUNCTION_STUB(__imp__sprintf);
-GUEST_FUNCTION_STUB(__imp___snprintf);
-GUEST_FUNCTION_STUB(__imp___snwprintf);
-GUEST_FUNCTION_STUB(__imp__vswprintf);
-GUEST_FUNCTION_STUB(__imp___vscwprintf);
-GUEST_FUNCTION_STUB(__imp__swprintf);
+

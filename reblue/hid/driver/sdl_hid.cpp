@@ -4,7 +4,6 @@
 #include <hid/hid.h>
 #include <os/logger.h>
 #include <ui/game_window.h>
-#include <kernel/xdm.h>
 #include <app.h>
 
 #define TRANSLATE_INPUT(S, X) SDL_GameControllerGetButton(controller, S) << FirstBitLow(X)

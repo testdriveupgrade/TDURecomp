@@ -52,8 +52,12 @@ using Microsoft::WRL::ComPtr;
 #include <charconv>
 
 #include "framework.h"
-#include "mutex.h"
+#include <kernel/obj/mutex.h>
 
 #ifndef _WIN32
 #include <sys/mman.h>
+#endif
+
+#ifdef _WIN32
+#include <ntstatus.h>
 #endif

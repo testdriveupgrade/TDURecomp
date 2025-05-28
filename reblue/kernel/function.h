@@ -3,7 +3,7 @@
 #include <cpu/ppc_context.h>
 #include <array>
 #include "xbox.h"
-#include "memory.h"
+#include <kernel/kernel.h>
 
 template <typename R, typename... T>
 constexpr std::tuple<T...> function_args(R(*)(T...)) noexcept
@@ -166,7 +166,7 @@ struct ArgTranslator
         }
         else if constexpr (std::is_pointer_v<T>)
         {
-            SetIntegerArgumentValue(ctx, base, idx, g_memory.MapVirtual(value));
+            SetIntegerArgumentValue(ctx, base, idx, reblue::kernel::g_memory.MapVirtual(value));
         }
         else
         {
@@ -177,7 +177,7 @@ struct ArgTranslator
     template<typename T>
     constexpr static std::enable_if_t<std::is_pointer_v<T>, void> SetValue(PPCContext& ctx, uint8_t* base, size_t idx, T value) noexcept
     {
-        const auto v = g_memory.MapVirtual((void*)value);
+        const auto v = reblue::kernel::g_memory.MapVirtual((void*)value);
         if (!v)
         {
             return;
@@ -318,21 +318,21 @@ T GuestToHostFunction(const TFunction& func, TArgs&&... argv)
     newCtx.r13 = currentCtx.r13;
     newCtx.fpscr = currentCtx.fpscr;
 
-    _translate_args_to_guest(newCtx, g_memory.base, args);
+    _translate_args_to_guest(newCtx, reblue::kernel::g_memory.base, args);
 
     SetPPCContext(newCtx);
 
     if constexpr (std::is_function_v<TFunction>)
-        func(newCtx, g_memory.base);
+        func(newCtx, reblue::kernel::g_memory.base);
     else
-        g_memory.FindFunction(func)(newCtx, g_memory.base);
+        reblue::kernel::g_memory.FindFunction(func)(newCtx, reblue::kernel::g_memory.base);
 
     currentCtx.fpscr = newCtx.fpscr;
     SetPPCContext(currentCtx);
 
     if constexpr (std::is_pointer_v<T>)
     {
-        return reinterpret_cast<T>((uint64_t)g_memory.Translate(newCtx.r3.u32));
+        return reinterpret_cast<T>((uint64_t)reblue::kernel::g_memory.Translate(newCtx.r3.u32));
     }
     else if constexpr (is_precise_v<T>)
     {

@@ -1,9 +1,10 @@
 #include <stdafx.h>
 #include "guest_thread.h"
-#include <kernel/memory.h>
-#include <kernel/heap.h>
+#include <kernel/obj/guest_memory.h>
+#include <kernel/obj/guest_heap.h>
 #include <kernel/function.h>
 #include "ppc_context.h"
+#include <kernel/kernel.h>
 
 constexpr size_t PCR_SIZE = 0xAB0;
 constexpr size_t TLS_SIZE = 0x100;
@@ -17,18 +18,18 @@ GuestThreadContext::GuestThreadContext(uint32_t cpuNumber)
 {
     assert(thread == nullptr);
 
-    thread = (uint8_t*)g_userHeap.Alloc(TOTAL_SIZE);
+    thread = (uint8_t*)reblue::kernel::g_userHeap.Alloc(TOTAL_SIZE);
     memset(thread, 0, TOTAL_SIZE);
 
-    *(uint32_t*)thread = ByteSwap(g_memory.MapVirtual(thread + PCR_SIZE)); // tls pointer
-    *(uint32_t*)(thread + 0x100) = ByteSwap(g_memory.MapVirtual(thread + PCR_SIZE + TLS_SIZE)); // teb pointer
+    *(uint32_t*)thread = ByteSwap(reblue::kernel::g_memory.MapVirtual(thread + PCR_SIZE)); // tls pointer
+    *(uint32_t*)(thread + 0x100) = ByteSwap(reblue::kernel::g_memory.MapVirtual(thread + PCR_SIZE + TLS_SIZE)); // teb pointer
     *(thread + 0x10C) = cpuNumber;
 
     *(uint32_t*)(thread + PCR_SIZE + 0x10) = 0xFFFFFFFF; // that one TLS entry that felt quirky
     *(uint32_t*)(thread + PCR_SIZE + TLS_SIZE + 0x14C) = ByteSwap(GuestThread::GetCurrentThreadId()); // thread id
 
-    ppcContext.r1.u64 = g_memory.MapVirtual(thread + PCR_SIZE + TLS_SIZE + TEB_SIZE + STACK_SIZE); // stack pointer
-    ppcContext.r13.u64 = g_memory.MapVirtual(thread);
+    ppcContext.r1.u64 = reblue::kernel::g_memory.MapVirtual(thread + PCR_SIZE + TLS_SIZE + TEB_SIZE + STACK_SIZE); // stack pointer
+    ppcContext.r13.u64 = reblue::kernel::g_memory.MapVirtual(thread);
     ppcContext.fpscr.loadFromHost();
 
     assert(GetPPCContext() == nullptr);
@@ -37,7 +38,7 @@ GuestThreadContext::GuestThreadContext(uint32_t cpuNumber)
 
 GuestThreadContext::~GuestThreadContext()
 {
-    g_userHeap.Free(thread);
+    reblue::kernel::g_userHeap.Free(thread);
 }
 
 static void GuestThreadFunc(GuestThreadHandle* hThread)
@@ -75,7 +76,7 @@ uint32_t GuestThread::Start(const GuestThreadParams& params)
     GuestThreadContext ctx(cpuNumber);
     ctx.ppcContext.r3.u64 = params.value;
 
-    g_memory.FindFunction(params.function)(ctx.ppcContext, g_memory.base);
+    reblue::kernel::g_memory.FindFunction(params.function)(ctx.ppcContext, reblue::kernel::g_memory.base);
 
     return ctx.ppcContext.r3.u32;
 }
@@ -90,7 +91,7 @@ static uint32_t GetThreadId(const std::thread::id& id)
 
 GuestThreadHandle* GuestThread::Start(const GuestThreadParams& params, uint32_t* threadId)
 {
-    auto hThread = CreateKernelObject<GuestThreadHandle>(params);
+    auto hThread = reblue::kernel::CreateKernelObject<GuestThreadHandle>(params);
 
     if (threadId != nullptr)
         *threadId = GetThreadId(hThread->thread.get_id());
@@ -105,7 +106,7 @@ uint32_t GuestThread::GetCurrentThreadId()
 
 void GuestThread::SetLastError(uint32_t error)
 {
-    auto* thread = (char*)g_memory.Translate(GetPPCContext()->r13.u32);
+    auto* thread = (char*)reblue::kernel::g_memory.Translate(GetPPCContext()->r13.u32);
     if (*(uint32_t*)(thread + 0x150))
     {
         // Program doesn't want errors
@@ -150,14 +151,14 @@ void GuestThread::SetThreadName(uint32_t threadId, const char* name)
 void SetThreadNameImpl(uint32_t a1, uint32_t threadId, uint32_t* name)
 {
 #ifdef _WIN32
-    GuestThread::SetThreadName(threadId, (const char*)g_memory.Translate(ByteSwap(*name)));
+    GuestThread::SetThreadName(threadId, (const char*)reblue::kernel::g_memory.Translate(ByteSwap(*name)));
 #endif
 }
 
 int GetThreadPriorityImpl(GuestThreadHandle* hThread)
 {
 #ifdef _WIN32
-    return GetThreadPriority(hThread == GetKernelObject(CURRENT_THREAD_HANDLE) ? GetCurrentThread() : hThread->thread.native_handle());
+    return GetThreadPriority(hThread == reblue::kernel::GetKernelObject(CURRENT_THREAD_HANDLE) ? GetCurrentThread() : hThread->thread.native_handle());
 #else 
     return 0;
 #endif

@@ -6,6 +6,10 @@
 
 #include "rhi/plume_render_interface.h"
 
+#define SPEC_CONSTANT_BICUBIC_GI_FILTER (1 << 2)
+#define SPEC_CONSTANT_ALPHA_TO_COVERAGE (1 << 3)
+#define SPEC_CONSTANT_REVERSE_Z         (1 << 4)
+
 #define D3DCLEAR_TARGET  0x1
 #define D3DCLEAR_ZBUFFER 0x10
 
@@ -284,7 +288,7 @@ struct GuestVertexDeclaration : GuestResource
 // VertexShader/PixelShader
 struct GuestShader : GuestResource
 {
-    Mutex mutex;
+    reblue::kernel::Mutex mutex;
     std::unique_ptr<RenderShader> shader;
     struct ShaderCacheEntry* shaderCacheEntry = nullptr;
     ankerl::unordered_dense::map<uint32_t, std::unique_ptr<RenderShader>> linkedShaders;
@@ -313,6 +317,15 @@ struct GuestRect
     be<int32_t> top;
     be<int32_t> right;
     be<int32_t> bottom;
+};
+
+struct GuestPictureData
+{
+    be<uint32_t> vtable;
+    uint8_t flags;
+    be<uint32_t> name;
+    be<uint32_t> texture;
+    be<uint32_t> type;
 };
 
 enum GuestRenderState
@@ -411,3 +424,79 @@ inline bool g_needsResize;
 extern std::unique_ptr<GuestTexture> LoadTexture(const uint8_t* data, size_t dataSize, RenderComponentMapping componentMapping = RenderComponentMapping());
 
 extern void VideoConfigValueChangedCallback(class IConfigDef* config);
+
+namespace reblue {
+    namespace gpu {
+        static uint32_t CreateDevice(uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, be<uint32_t>* a6);
+
+        static void DestructResource(GuestResource* resource);
+
+        static void LockTextureRect(GuestTexture* texture, uint32_t, GuestLockedRect* lockedRect);
+        static void UnlockTextureRect(GuestTexture* texture);
+
+        static void* LockVertexBuffer(GuestBuffer* buffer, uint32_t, uint32_t, uint32_t flags);
+        static void UnlockVertexBuffer(GuestBuffer* buffer);
+        static void GetVertexBufferDesc(GuestBuffer* buffer, GuestBufferDesc* desc);
+        static void* LockIndexBuffer(GuestBuffer* buffer, uint32_t, uint32_t, uint32_t flags);
+
+        static void UnlockIndexBuffer(GuestBuffer* buffer);
+        static void GetIndexBufferDesc(GuestBuffer* buffer, GuestBufferDesc* desc);
+        static void GetSurfaceDesc(GuestSurface* surface, GuestSurfaceDesc* desc);
+
+        static void GetVertexDeclaration(GuestVertexDeclaration* vertexDeclaration, GuestVertexElement* vertexElements, be<uint32_t>* count);
+
+        static uint32_t HashVertexDeclaration(uint32_t vertexDeclaration);
+
+        static GuestSurface* GetBackBuffer();
+
+        static GuestTexture* CreateTexture(uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t usage, uint32_t format, uint32_t pool, uint32_t type);
+        static GuestBuffer* CreateVertexBuffer(uint32_t length);
+
+        static GuestBuffer* CreateIndexBuffer(uint32_t length, uint32_t, uint32_t format);
+
+        static GuestSurface* CreateSurface(uint32_t width, uint32_t height, uint32_t format, uint32_t multiSample);
+
+        static void StretchRect(GuestDevice* device, uint32_t flags, uint32_t, GuestTexture* texture);
+
+        static void SetRenderTarget(GuestDevice* device, uint32_t index, GuestSurface* renderTarget);
+
+        static void SetDepthStencilSurface(GuestDevice* device, GuestSurface* depthStencil);
+
+        static void Clear(GuestDevice* device, uint32_t flags, uint32_t, be<float>* color, double z);
+
+        static void SetViewport(GuestDevice* device, GuestViewport* viewport);
+
+        static void SetTexture(GuestDevice* device, uint32_t index, GuestTexture* texture);
+        static void SetScissorRect(GuestDevice* device, GuestRect* rect);
+
+        static void DrawPrimitive(GuestDevice* device, uint32_t primitiveType, uint32_t startVertex, uint32_t primitiveCount);
+
+        static void DrawIndexedPrimitive(GuestDevice* device, uint32_t primitiveType, int32_t baseVertexIndex, uint32_t startIndex, uint32_t primCount);
+
+        static void DrawPrimitiveUP(GuestDevice* device, uint32_t primitiveType, uint32_t primitiveCount, void* vertexStreamZeroData, uint32_t vertexStreamZeroStride);
+
+        static GuestVertexDeclaration* CreateVertexDeclaration(GuestVertexElement* vertexElements);
+        static void SetVertexDeclaration(GuestDevice* device, GuestVertexDeclaration* vertexDeclaration);
+        static GuestShader* CreateVertexShader(const be<uint32_t>* function);
+
+        static void SetVertexShader(GuestDevice* device, GuestShader* shader);
+
+        static void SetStreamSource(GuestDevice* device, uint32_t index, GuestBuffer* buffer, uint32_t offset, uint32_t stride);
+
+        static void SetIndices(GuestDevice* device, GuestBuffer* buffer);
+
+        static GuestShader* CreatePixelShader(const be<uint32_t>* function);
+
+        static void SetPixelShader(GuestDevice* device, GuestShader* shader);
+
+        static void D3DXFillTexture(GuestTexture* texture, uint32_t function, void* data);
+
+        static void D3DXFillVolumeTexture(GuestTexture* texture, uint32_t function, void* data);
+
+        static void MakePictureData(GuestPictureData* pictureData, uint8_t* data, uint32_t dataSize);
+
+        static void ScreenShaderInit(be<uint32_t>* a1, uint32_t a2, uint32_t a3, GuestVertexElement* vertexElements);
+
+        static void SetResolution(be<uint32_t>* device);
+    }
+}

@@ -1,6 +1,7 @@
 #include <apu/audio.h>
 #include <cpu/guest_thread.h>
-#include <kernel/heap.h>
+#include <kernel/kernel.h>
+
 #include <os/logger.h>
 #include <user/config.h>
 
@@ -75,7 +76,7 @@ static void AudioThread()
         if ((queuedAudioSize / callbackAudioSize) <= MAX_LATENCY)
         {
             ctx.ppcContext.r3.u32 = g_clientCallbackParam;
-            g_clientCallback(ctx.ppcContext, g_memory.base);
+            g_clientCallback(ctx.ppcContext, reblue::kernel::g_memory.base);
         }
 
         auto now = std::chrono::steady_clock::now();
@@ -98,10 +99,10 @@ static void CreateAudioThread()
 
 void XAudioRegisterClient(PPCFunc* callback, uint32_t param)
 {
-    auto* pClientParam = static_cast<uint32_t*>(g_userHeap.Alloc(sizeof(param)));
+    auto* pClientParam = static_cast<uint32_t*>(reblue::kernel::g_userHeap.Alloc(sizeof(param)));
     ByteSwapInplace(param);
     *pClientParam = param;
-    g_clientCallbackParam = g_memory.MapVirtual(pClientParam);
+    g_clientCallbackParam = reblue::kernel::g_memory.MapVirtual(pClientParam);
     g_clientCallback = callback;
 
     CreateAudioThread();

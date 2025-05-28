@@ -1,5 +1,4 @@
 #include "persistent_storage_manager.h"
-#include <install/installer.h>
 #include <os/logger.h>
 #include <user/paths.h>
 
@@ -8,28 +7,7 @@ bool PersistentStorageManager::ShouldDisplayDLCMessage(bool setOffendingDLCFlag)
     if (BinStatus != EExtBinStatus::Success)
         return true;
 
-    static std::unordered_map<EDLCFlag, DLC> flags =
-    {
-        { EDLCFlag::ApotosAndShamar, DLC::ApotosShamar },
-        { EDLCFlag::Spagonia, DLC::Spagonia },
-        { EDLCFlag::Chunnan, DLC::Chunnan },
-        { EDLCFlag::Mazuri, DLC::Mazuri },
-        { EDLCFlag::Holoska, DLC::Holoska },
-        { EDLCFlag::EmpireCityAndAdabat, DLC::EmpireCityAdabat }
-    };
-
     auto result = false;
-
-    //for (auto& pair : flags)
-    //{
-    //    if (!Data.DLCFlags[(int)pair.first] && Installer::checkDLCInstall(GetGamePath(), pair.second))
-    //    {
-    //        if (setOffendingDLCFlag)
-    //            Data.DLCFlags[(int)pair.first] = true;
-
-    //        result = true;
-    //    }
-    //}
 
     return result;
 }

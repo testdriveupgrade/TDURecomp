@@ -1,6 +1,5 @@
 #include <stdafx.h>
 #include "xam.h"
-#include "xdm.h"
 #include <hid/hid.h>
 #include <ui/game_window.h>
 #include <cpu/guest_thread.h>
@@ -9,8 +8,9 @@
 #include "xxHashMap.h"
 #include <user/paths.h>
 #include <SDL.h>
+#include <kernel/kernel.h>
 
-struct XamListener : KernelObject
+struct XamListener : reblue::kernel::KernelObject
 {
     uint32_t id{};
     uint64_t areas{};
@@ -23,7 +23,7 @@ struct XamListener : KernelObject
     ~XamListener();
 };
 
-struct XamEnumeratorBase : KernelObject
+struct XamEnumeratorBase :reblue::kernel::KernelObject
 {
     virtual uint32_t Next(void* buffer)
     {
@@ -87,7 +87,7 @@ std::array<xxHashMap<XHOSTCONTENT_DATA>, 3> gContentRegistry{};
 std::unordered_set<XamListener*> gListeners{};
 xxHashMap<std::string> gRootMap;
 
-std::string_view XamGetRootPath(const std::string_view& root)
+std::string_view reblue::kernel::XamGetRootPath(const std::string_view& root)
 {
     const auto result = gRootMap.find(StringHash(root));
 
@@ -97,7 +97,7 @@ std::string_view XamGetRootPath(const std::string_view& root)
     return result->second;
 }
 
-void XamRootCreate(const std::string_view& root, const std::string_view& path)
+void reblue::kernel::XamRootCreate(const std::string_view& root, const std::string_view& path)
 {
     gRootMap.emplace(StringHash(root), path);
 }
@@ -112,7 +112,7 @@ XamListener::~XamListener()
     gListeners.erase(this);
 }
 
-XCONTENT_DATA XamMakeContent(uint32_t type, const std::string_view& name)
+XCONTENT_DATA reblue::kernel::XamMakeContent(uint32_t type, const std::string_view& name)
 {
     XCONTENT_DATA data{ 1, type };
 
@@ -121,7 +121,7 @@ XCONTENT_DATA XamMakeContent(uint32_t type, const std::string_view& name)
     return data;
 }
 
-void XamRegisterContent(const XCONTENT_DATA& data, const std::string_view& root)
+void reblue::kernel::XamRegisterContent(const XCONTENT_DATA& data, const std::string_view& root)
 {
     const auto idx = data.dwContentType - 1;
 
@@ -134,19 +134,19 @@ void XamRegisterContent(uint32_t type, const std::string_view name, const std::s
 
     strncpy(data.szFileName, name.data(), sizeof(data.szFileName));
 
-    XamRegisterContent(data, root);
+    reblue::kernel::XamRegisterContent(data, root);
 }
 
-uint32_t XamNotifyCreateListener(uint64_t qwAreas)
+uint32_t reblue::kernel::XamNotifyCreateListener(uint64_t qwAreas)
 {
-    auto* listener = CreateKernelObject<XamListener>();
+    auto* listener = reblue::kernel::CreateKernelObject<XamListener>();
 
     listener->areas = qwAreas;
 
-    return GetKernelHandle(listener);
+    return reblue::kernel::GetKernelHandle(listener);
 }
 
-void XamNotifyEnqueueEvent(uint32_t dwId, uint32_t dwParam)
+void reblue::kernel::XamNotifyEnqueueEvent(uint32_t dwId, uint32_t dwParam)
 {
     for (const auto& listener : gListeners)
     {
@@ -157,9 +157,9 @@ void XamNotifyEnqueueEvent(uint32_t dwId, uint32_t dwParam)
     }
 }
 
-bool XNotifyGetNext(uint32_t hNotification, uint32_t dwMsgFilter, be<uint32_t>* pdwId, be<uint32_t>* pParam)
+bool reblue::kernel::XNotifyGetNext(uint32_t hNotification, uint32_t dwMsgFilter, be<uint32_t>* pdwId, be<uint32_t>* pParam)
 {
-    auto& listener = *GetKernelObject<XamListener>(hNotification);
+    auto& listener = *reblue::kernel::GetKernelObject<XamListener>(hNotification);
 
     if (dwMsgFilter)
     {
@@ -198,7 +198,7 @@ bool XNotifyGetNext(uint32_t hNotification, uint32_t dwMsgFilter, be<uint32_t>* 
     return false;
 }
 
-uint32_t XamShowMessageBoxUI(uint32_t dwUserIndex, be<uint16_t>* wszTitle, be<uint16_t>* wszText, uint32_t cButtons,
+uint32_t reblue::kernel::XamShowMessageBoxUI(uint32_t dwUserIndex, be<uint16_t>* wszTitle, be<uint16_t>* wszText, uint32_t cButtons,
     xpointer<be<uint16_t>>* pwszButtons, uint32_t dwFocusButton, uint32_t dwFlags, be<uint32_t>* pResult, XXOVERLAPPED* pOverlapped)
 {
     *pResult = cButtons ? cButtons - 1 : 0;
@@ -256,7 +256,7 @@ uint32_t XamShowMessageBoxUI(uint32_t dwUserIndex, be<uint16_t>* wszTitle, be<ui
     return 0;
 }
 
-uint32_t XamContentCreateEnumerator(uint32_t dwUserIndex, uint32_t DeviceID, uint32_t dwContentType,
+uint32_t reblue::kernel::XamContentCreateEnumerator(uint32_t dwUserIndex, uint32_t DeviceID, uint32_t dwContentType,
     uint32_t dwContentFlags, uint32_t cItem, be<uint32_t>* pcbBuffer, be<uint32_t>* phEnum)
 {
     if (dwUserIndex != 0)
@@ -267,19 +267,19 @@ uint32_t XamContentCreateEnumerator(uint32_t dwUserIndex, uint32_t DeviceID, uin
 
     const auto& registry = gContentRegistry[dwContentType - 1];
     const auto& values = registry | std::views::values;
-    auto* enumerator = CreateKernelObject<XamEnumerator<decltype(values.begin())>>(cItem, sizeof(_XCONTENT_DATA), values.begin(), values.end());
+    auto* enumerator = reblue::kernel::CreateKernelObject<XamEnumerator<decltype(values.begin())>>(cItem, sizeof(_XCONTENT_DATA), values.begin(), values.end());
 
     if (pcbBuffer)
         *pcbBuffer = sizeof(_XCONTENT_DATA) * cItem;
 
-    *phEnum = GetKernelHandle(enumerator);
+    *phEnum = reblue::kernel::GetKernelHandle(enumerator);
 
     return 0;
 }
 
-uint32_t XamEnumerate(uint32_t hEnum, uint32_t dwFlags, void* pvBuffer, uint32_t cbBuffer, be<uint32_t>* pcItemsReturned, XXOVERLAPPED* pOverlapped)
+uint32_t reblue::kernel::XamEnumerate(uint32_t hEnum, uint32_t dwFlags, void* pvBuffer, uint32_t cbBuffer, be<uint32_t>* pcItemsReturned, XXOVERLAPPED* pOverlapped)
 {
-    auto* enumerator = GetKernelObject<XamEnumeratorBase>(hEnum);
+    auto* enumerator = reblue::kernel::GetKernelObject<XamEnumeratorBase>(hEnum);
     const auto count = enumerator->Next(pvBuffer);
 
     if (count == -1)
@@ -291,7 +291,7 @@ uint32_t XamEnumerate(uint32_t hEnum, uint32_t dwFlags, void* pvBuffer, uint32_t
     return ERROR_SUCCESS;
 }
 
-uint32_t XamContentCreateEx(uint32_t dwUserIndex, const char* szRootName, const XCONTENT_DATA* pContentData,
+uint32_t reblue::kernel::XamContentCreateEx(uint32_t dwUserIndex, const char* szRootName, const XCONTENT_DATA* pContentData,
     uint32_t dwContentFlags, be<uint32_t>* pdwDisposition, be<uint32_t>* pdwLicenseMask,
     uint32_t dwFileCacheSize, uint64_t uliContentSize, PXXOVERLAPPED pOverlapped)
 {
@@ -360,13 +360,13 @@ uint32_t XamContentCreateEx(uint32_t dwUserIndex, const char* szRootName, const 
     return ERROR_PATH_NOT_FOUND;
 }
 
-uint32_t XamContentClose(const char* szRootName, XXOVERLAPPED* pOverlapped)
+uint32_t reblue::kernel::XamContentClose(const char* szRootName, XXOVERLAPPED* pOverlapped)
 {
     gRootMap.erase(StringHash(szRootName));
     return 0;
 }
 
-uint32_t XamContentGetDeviceData(uint32_t DeviceID, XDEVICE_DATA* pDeviceData)
+uint32_t reblue::kernel::XamContentGetDeviceData(uint32_t DeviceID, XDEVICE_DATA* pDeviceData)
 {
     pDeviceData->DeviceID = DeviceID;
     pDeviceData->DeviceType = XCONTENTDEVICETYPE_HDD;
@@ -382,7 +382,7 @@ uint32_t XamContentGetDeviceData(uint32_t DeviceID, XDEVICE_DATA* pDeviceData)
     return 0;
 }
 
-uint32_t XamInputGetCapabilities(uint32_t unk, uint32_t userIndex, uint32_t flags, XAMINPUT_CAPABILITIES* caps)
+uint32_t reblue::kernel::XamInputGetCapabilities(uint32_t unk, uint32_t userIndex, uint32_t flags, XAMINPUT_CAPABILITIES* caps)
 {
     uint32_t result = hid::GetCapabilities(userIndex, caps);
 
@@ -401,7 +401,7 @@ uint32_t XamInputGetCapabilities(uint32_t unk, uint32_t userIndex, uint32_t flag
     return result;
 }
 
-uint32_t XamInputGetState(uint32_t userIndex, uint32_t flags, XAMINPUT_STATE* state)
+uint32_t reblue::kernel::XamInputGetState(uint32_t userIndex, uint32_t flags, XAMINPUT_STATE* state)
 {
     memset(state, 0, sizeof(*state));
 
@@ -487,7 +487,7 @@ uint32_t XamInputGetState(uint32_t userIndex, uint32_t flags, XAMINPUT_STATE* st
     return ERROR_SUCCESS;
 }
 
-uint32_t XamInputSetState(uint32_t userIndex, uint32_t flags, XAMINPUT_VIBRATION* vibration)
+uint32_t reblue::kernel::XamInputSetState(uint32_t userIndex, uint32_t flags, XAMINPUT_VIBRATION* vibration)
 {
     if (!hid::IsInputDeviceController() || !Config::Vibration)
         return ERROR_SUCCESS;
@@ -496,4 +496,165 @@ uint32_t XamInputSetState(uint32_t userIndex, uint32_t flags, XAMINPUT_VIBRATION
     ByteSwapInplace(vibration->wRightMotorSpeed);
 
     return hid::SetState(userIndex, vibration);
+}
+
+uint32_t reblue::kernel::XamUserGetSigninState(uint32_t userIndex)
+{
+    return true;
+}
+
+uint32_t reblue::kernel::XamGetSystemVersion()
+{
+    return 0;
+}
+
+void reblue::kernel::XamContentDelete()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+uint32_t reblue::kernel::XamContentGetCreator(uint32_t userIndex, const XCONTENT_DATA* contentData, be<uint32_t>* isCreator, be<uint64_t>* xuid, XXOVERLAPPED* overlapped)
+{
+    if (isCreator)
+        *isCreator = true;
+
+    if (xuid)
+        *xuid = 0xB13EBABEBABEBABE;
+
+    return 0;
+}
+
+uint32_t reblue::kernel::XamContentGetDeviceState()
+{
+    return 0;
+}
+
+uint32_t reblue::kernel::XamUserGetSigninInfo(uint32_t userIndex, uint32_t flags, XUSER_SIGNIN_INFO* info)
+{
+    if (userIndex == 0)
+    {
+        memset(info, 0, sizeof(*info));
+        info->xuid = 0xB13EBABEBABEBABE;
+        info->SigninState = 1;
+        strcpy(info->Name, "SWA");
+        return 0;
+    }
+
+    return 0x00000525; // ERROR_NO_SUCH_USER
+}
+
+void reblue::kernel::XamShowSigninUI()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+uint32_t reblue::kernel::XamShowDeviceSelectorUI(uint32_t userIndex, uint32_t contentType, uint32_t contentFlags, uint64_t totalRequested, be<uint32_t>* deviceId, XXOVERLAPPED* overlapped)
+{
+    XamNotifyEnqueueEvent(9, true);
+    *deviceId = 1;
+    XamNotifyEnqueueEvent(9, false);
+    return 0;
+}
+
+void reblue::kernel::XamShowDirtyDiscErrorUI()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XamEnableInactivityProcessing()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XamResetInactivity()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XamShowMessageBoxUIEx()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XamLoaderTerminateTitle()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XamGetExecutionId()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XamLoaderLaunchTitle()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XamUserReadProfileSettings(uint32_t titleId, uint32_t userIndex, uint32_t xuidCount, uint64_t* xuids, uint32_t settingCount, uint32_t* settingIds, be<uint32_t>* bufferSize, void* buffer, void* overlapped)
+{
+    if (buffer != nullptr)
+    {
+        memset(buffer, 0, *bufferSize);
+    }
+    else
+    {
+        *bufferSize = 4;
+    }
+}
+
+void reblue::kernel::XamContentSetThumbnail()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+uint32_t reblue::kernel::XamLoaderGetDvdTrayState()
+{
+    return 0; // 0 = closed
+}
+
+void reblue::kernel::XamTaskCloseHandle()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XamTaskSchedule()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XamTaskShouldExit()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XamUserCreateAchievementEnumerator()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+uint32_t reblue::kernel::XamUserGetName(uint32_t userIndex, char* userName, uint32_t userNameLength)
+{
+    if (userIndex == 0 && userName != nullptr && userNameLength > 0)
+    {
+        strncpy(userName, "Player", userNameLength - 1);
+        userName[userNameLength - 1] = '\0';
+        return 0;
+    }
+    return 0x00000525; // ERROR_NO_SUCH_USER
+}
+
+uint32_t reblue::kernel::XamUserGetXUID(uint32_t userIndex, be<uint64_t>* xuid)
+{
+    if (userIndex == 0 && xuid != nullptr)
+    {
+        *xuid = 0xB13EBABEBABEBABE;
+        return 0;
+    }
+    return 0x00000525; // ERROR_NO_SUCH_USER
+}
+
+void reblue::kernel::XamUserWriteProfileSettings()
+{
+    LOG_UTILITY("!!! STUB !!!");
 }

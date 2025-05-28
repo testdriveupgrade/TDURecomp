@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include <kernel/function.h>
-#include <kernel/xdm.h>
 
 uint32_t QueryPerformanceCounterImpl(LARGE_INTEGER* lpPerformanceCount)
 {

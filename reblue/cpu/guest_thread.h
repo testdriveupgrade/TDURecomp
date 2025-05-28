@@ -1,6 +1,6 @@
 #pragma once
 
-#include <kernel/xdm.h>
+#include <kernel/obj/kernel_object.h>
 
 #define CURRENT_THREAD_HANDLE uint32_t(-2)
 
@@ -20,7 +20,7 @@ struct GuestThreadParams
     uint32_t flags;
 };
 
-struct GuestThreadHandle : KernelObject
+struct GuestThreadHandle : reblue::kernel::KernelObject
 {
     GuestThreadParams params;
     std::atomic<bool> suspended;
