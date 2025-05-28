@@ -21,6 +21,8 @@ struct Event final : KernelObject, HostObject<XKEVENT>
 {
     bool manualReset;
     std::atomic<bool> signaled;
+    std::mutex mutex;
+    std::condition_variable cv;
 
     Event(XKEVENT* header)
         : manualReset(!header->Type), signaled(!!header->SignalState)
@@ -68,7 +70,20 @@ struct Event final : KernelObject, HostObject<XKEVENT>
         }
         else
         {
-            assert(false && "Unhandled timeout value.");
+            std::unique_lock<std::mutex> lock(mutex);
+            if (manualReset)
+            {
+                if (!cv.wait_for(lock, std::chrono::milliseconds(timeout), [this] { return signaled.load(); }))
+                    return STATUS_TIMEOUT;
+            }
+            else
+            {
+                if (!cv.wait_for(lock, std::chrono::milliseconds(timeout), [this] {
+                    bool expected = true;
+                    return signaled.compare_exchange_strong(expected, false);
+                    }))
+                    return STATUS_TIMEOUT;
+            }
         }
 
         return STATUS_SUCCESS;
@@ -76,7 +91,12 @@ struct Event final : KernelObject, HostObject<XKEVENT>
 
     bool Set()
     {
-        signaled = true;
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            signaled = true;
+        }
+
+        cv.notify_all();
 
         if (manualReset)
             signaled.notify_all();
@@ -88,6 +108,7 @@ struct Event final : KernelObject, HostObject<XKEVENT>
 
     bool Reset()
     {
+        std::lock_guard<std::mutex> lock(mutex);
         signaled = false;
         return TRUE;
     }
@@ -99,6 +120,8 @@ struct Semaphore final : KernelObject, HostObject<XKSEMAPHORE>
 {
     std::atomic<uint32_t> count;
     uint32_t maximumCount;
+    std::mutex mutex;
+    std::condition_variable cv;
 
     Semaphore(XKSEMAPHORE* semaphore)
         : count(semaphore->Header.SignalState), maximumCount(semaphore->Limit)
@@ -144,8 +167,20 @@ struct Semaphore final : KernelObject, HostObject<XKSEMAPHORE>
         }
         else
         {
-            assert(false && "Unhandled timeout value.");
-            return STATUS_TIMEOUT;
+            std::unique_lock<std::mutex> lock(mutex);
+
+            if (!cv.wait_for(lock, std::chrono::milliseconds(timeout), [this] {
+                uint32_t currentCount = count.load();
+                if (currentCount != 0)
+                {
+                    if (count.compare_exchange_weak(currentCount, currentCount - 1))
+                        return true;
+                }
+                return false;
+                }))
+                return STATUS_TIMEOUT;
+
+            return STATUS_SUCCESS;
         }
     }
 
@@ -156,7 +191,12 @@ struct Semaphore final : KernelObject, HostObject<XKSEMAPHORE>
 
         assert(count + releaseCount <= maximumCount);
 
-        count += releaseCount;
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            count += releaseCount;
+        }
+
+        cv.notify_all();
         count.notify_all();
     }
 };
@@ -166,6 +206,8 @@ struct Mutant final : KernelObject, HostObject<XKMUTANT>
     std::atomic<uint32_t> owningThread;
     std::atomic<uint32_t> recursionCount;
     std::atomic<bool> abandoned;
+    std::mutex mutex;
+    std::condition_variable cv;
 
     Mutant(XKMUTANT* mutant)
         : owningThread(mutant->Header.SignalState ? 0 : g_ppcContext->r13.u32),
@@ -233,8 +275,29 @@ struct Mutant final : KernelObject, HostObject<XKMUTANT>
         }
         else
         {
-            assert(false && "Unhandled timeout value.");
-            return STATUS_TIMEOUT;
+            std::unique_lock<std::mutex> lock(mutex);
+
+            if (!cv.wait_for(lock, std::chrono::milliseconds(timeout), [this, currentThread] {
+                uint32_t owner = owningThread.load();
+                if (owner == 0)
+                {
+                    if (owningThread.compare_exchange_weak(owner, currentThread))
+                    {
+                        recursionCount = 1;
+                        return true;
+                    }
+                }
+                else if (owner == currentThread)
+                {
+                    recursionCount++;
+                    return true;
+                }
+                return false;
+                }))
+                return STATUS_TIMEOUT;
+
+            bool wasAbandoned = abandoned.exchange(false);
+            return wasAbandoned ? STATUS_ABANDONED_WAIT_0 : STATUS_SUCCESS;
         }
     }
 
@@ -251,7 +314,11 @@ struct Mutant final : KernelObject, HostObject<XKMUTANT>
         uint32_t count = --recursionCount;
         if (count == 0)
         {
-            owningThread = 0;
+            {
+                std::lock_guard<std::mutex> lock(mutex);
+                owningThread = 0;
+            }
+            cv.notify_one();
             owningThread.notify_one();
         }
 
@@ -260,9 +327,13 @@ struct Mutant final : KernelObject, HostObject<XKMUTANT>
 
     void Abandon()
     {
-        abandoned = true;
-        recursionCount = 0;
-        owningThread = 0;
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            abandoned = true;
+            recursionCount = 0;
+            owningThread = 0;
+        }
+        cv.notify_all();
         owningThread.notify_all();
     }
 };
@@ -510,7 +581,6 @@ uint32_t FscSetCacheElementCount()
 uint32_t NtWaitForSingleObjectEx(uint32_t Handle, uint32_t WaitMode, uint32_t Alertable, be<int64_t>* Timeout)
 {
     uint32_t timeout = GuestTimeoutToMilliseconds(Timeout);
-    assert(timeout == 0 || timeout == INFINITE);
 
     if (IsKernelObject(Handle))
     {
@@ -1119,7 +1189,6 @@ bool KeResetEvent(XKEVENT* pEvent)
 uint32_t KeWaitForSingleObject(XDISPATCHER_HEADER* Object, uint32_t WaitReason, uint32_t WaitMode, bool Alertable, be<int64_t>* Timeout)
 {
     const uint32_t timeout = GuestTimeoutToMilliseconds(Timeout);
-    assert(timeout == INFINITE);
 
     switch (Object->Type)
     {
@@ -1607,15 +1676,30 @@ void NetDll_XNetGetTitleXnAddr()
 
 uint32_t KeWaitForMultipleObjects(uint32_t Count, xpointer<XDISPATCHER_HEADER>* Objects, uint32_t WaitType, uint32_t WaitReason, uint32_t WaitMode, uint32_t Alertable, be<int64_t>* Timeout)
 {
-    // FIXME: This function is only accounting for events.
-
     const uint64_t timeout = GuestTimeoutToMilliseconds(Timeout);
-    assert(timeout == INFINITE);
+
+    auto deadline = (timeout == INFINITE) ?
+        std::chrono::steady_clock::time_point::max() :
+        std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout);
 
     if (WaitType == 0) // Wait all
     {
         for (size_t i = 0; i < Count; i++)
-            QueryKernelObject<Event>(*Objects[i])->Wait(timeout);
+        {
+            uint32_t remaining = INFINITE;
+            if (timeout != INFINITE)
+            {
+                auto now = std::chrono::steady_clock::now();
+                if (now >= deadline)
+                    return STATUS_TIMEOUT;
+
+                remaining = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - now).count();
+            }
+
+            uint32_t result = QueryKernelObject<Event>(*Objects[i])->Wait(remaining);
+            if (result != STATUS_SUCCESS)
+                return result;
+        }
     }
     else
     {
@@ -1625,6 +1709,7 @@ uint32_t KeWaitForMultipleObjects(uint32_t Count, xpointer<XDISPATCHER_HEADER>* 
         for (size_t i = 0; i < Count; i++)
             s_events[i] = QueryKernelObject<Event>(*Objects[i]);
 
+        auto start = std::chrono::steady_clock::now();
         while (true)
         {
             uint32_t generation = g_keSetEventGeneration.load();
@@ -1637,7 +1722,14 @@ uint32_t KeWaitForMultipleObjects(uint32_t Count, xpointer<XDISPATCHER_HEADER>* 
                 }
             }
 
-            g_keSetEventGeneration.wait(generation);
+            if (timeout != INFINITE && std::chrono::steady_clock::now() >= deadline)
+                return STATUS_TIMEOUT;
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+            // Check if generation changed
+            if (g_keSetEventGeneration.load() != generation)
+                continue;
         }
     }
 
