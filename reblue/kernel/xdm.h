@@ -151,3 +151,8 @@ inline T* TryQueryKernelObject(XDISPATCHER_HEADER& header)
 
     return static_cast<T*>(g_memory.Translate(header.WaitListHead.Blink.get()));
 }
+
+struct XKMUTANT
+{
+    XDISPATCHER_HEADER Header;
+};

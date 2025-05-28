@@ -161,6 +161,112 @@ struct Semaphore final : KernelObject, HostObject<XKSEMAPHORE>
     }
 };
 
+struct Mutant final : KernelObject, HostObject<XKMUTANT>
+{
+    std::atomic<uint32_t> owningThread;
+    std::atomic<uint32_t> recursionCount;
+    std::atomic<bool> abandoned;
+
+    Mutant(XKMUTANT* mutant)
+        : owningThread(mutant->Header.SignalState ? 0 : g_ppcContext->r13.u32),
+        recursionCount(mutant->Header.SignalState ? 0 : 1),
+        abandoned(false)
+    {
+    }
+
+    Mutant(bool initialOwner)
+        : owningThread(initialOwner ? g_ppcContext->r13.u32 : 0),
+        recursionCount(initialOwner ? 1 : 0),
+        abandoned(false)
+    {
+    }
+
+    uint32_t Wait(uint32_t timeout) override
+    {
+        uint32_t currentThread = g_ppcContext->r13.u32;
+
+        if (timeout == 0)
+        {
+            uint32_t owner = owningThread.load();
+            if (owner == 0)
+            {
+                // Try to acquire
+                if (owningThread.compare_exchange_strong(owner, currentThread))
+                {
+                    recursionCount = 1;
+                    bool wasAbandoned = abandoned.exchange(false);
+                    return wasAbandoned ? STATUS_ABANDONED_WAIT_0 : STATUS_SUCCESS;
+                }
+            }
+            else if (owner == currentThread)
+            {
+                // Recursive acquisition
+                recursionCount++;
+                return STATUS_SUCCESS;
+            }
+            return STATUS_TIMEOUT;
+        }
+        else if (timeout == INFINITE)
+        {
+            while (true)
+            {
+                uint32_t owner = owningThread.load();
+                if (owner == 0)
+                {
+                    if (owningThread.compare_exchange_weak(owner, currentThread))
+                    {
+                        recursionCount = 1;
+                        bool wasAbandoned = abandoned.exchange(false);
+                        return wasAbandoned ? STATUS_ABANDONED_WAIT_0 : STATUS_SUCCESS;
+                    }
+                }
+                else if (owner == currentThread)
+                {
+                    recursionCount++;
+                    return STATUS_SUCCESS;
+                }
+                else
+                {
+                    owningThread.wait(owner);
+                }
+            }
+        }
+        else
+        {
+            assert(false && "Unhandled timeout value.");
+            return STATUS_TIMEOUT;
+        }
+    }
+
+    uint32_t Release()
+    {
+        uint32_t currentThread = g_ppcContext->r13.u32;
+        uint32_t owner = owningThread.load();
+
+        if (owner != currentThread)
+        {
+            return STATUS_MUTANT_NOT_OWNED;
+        }
+
+        uint32_t count = --recursionCount;
+        if (count == 0)
+        {
+            owningThread = 0;
+            owningThread.notify_one();
+        }
+
+        return STATUS_SUCCESS;
+    }
+
+    void Abandon()
+    {
+        abandoned = true;
+        recursionCount = 0;
+        owningThread = 0;
+        owningThread.notify_all();
+    }
+};
+
 inline void CloseKernelObject(XDISPATCHER_HEADER& header)
 {
     if (header.WaitListHead.Flink != OBJECT_SIGNATURE)
@@ -1836,9 +1942,10 @@ uint32_t KeTryToAcquireSpinLockAtRaisedIrql(uint32_t* spinLock)
 }
 GUEST_FUNCTION_HOOK(__imp__KeTryToAcquireSpinLockAtRaisedIrql, KeTryToAcquireSpinLockAtRaisedIrql);
 
-void NtCreateMutant()
+uint32_t NtCreateMutant(be<uint32_t>* handle, void* objAttributes, uint32_t initialOwner)
 {
-    LOG_UTILITY("!!! STUB !!!");
+    *handle = GetKernelHandle(CreateKernelObject<Mutant>(!!initialOwner));
+    return STATUS_SUCCESS;
 }
 GUEST_FUNCTION_HOOK(__imp__NtCreateMutant, NtCreateMutant);
 
@@ -1848,9 +1955,14 @@ void NtDeviceIoControlFile()
 }
 GUEST_FUNCTION_HOOK(__imp__NtDeviceIoControlFile, NtDeviceIoControlFile);
 
-void NtReleaseMutant()
+uint32_t NtReleaseMutant(Mutant* handle, be<uint32_t>* previousCount)
 {
-    LOG_UTILITY("!!! STUB !!!");
+    if (previousCount)
+    {
+        *previousCount = handle->recursionCount.load();
+    }
+
+    return handle->Release();
 }
 GUEST_FUNCTION_HOOK(__imp__NtReleaseMutant, NtReleaseMutant);
 
