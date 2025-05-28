@@ -56,24 +56,7 @@ void HostStartup()
 // Name inspired from nt's entry point
 void KiSystemStartup()
 {
-    if (g_memory.base == nullptr)
-    {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, GameWindow::GetTitle(), Localise("System_MemoryAllocationFailed").c_str(), GameWindow::s_pWindow);
-        std::_Exit(1);
-    }
 
-    g_userHeap.Init();
-
-    const auto gameContent = XamMakeContent(XCONTENTTYPE_RESERVED, "Game");
-    XamRegisterContent(gameContent, GAME_INSTALL_DIRECTORY "/game");
-
-    // Mount game
-    XamContentCreateEx(0, "game", &gameContent, OPEN_EXISTING, nullptr, nullptr, 0, 0, nullptr);
-
-    // OS mounts game data to D:
-    XamContentCreateEx(0, "D", &gameContent, OPEN_EXISTING, nullptr, nullptr, 0, 0, nullptr);
-
-    XAudioInitializeSystem();
 }
 
 uint32_t LdrLoadModule(const std::filesystem::path &path)
@@ -238,7 +221,24 @@ int main(int argc, char *argv[])
     if (!PersistentStorageManager::LoadBinary())
         LOGFN_ERROR("Failed to load persistent storage binary... (status code {})", (int)PersistentStorageManager::BinStatus);
 
-    KiSystemStartup();
+    if (g_memory.base == nullptr)
+    {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, GameWindow::GetTitle(), Localise("System_MemoryAllocationFailed").c_str(), GameWindow::s_pWindow);
+        std::_Exit(1);
+    }
+
+    g_userHeap.Init();
+
+    const auto gameContent = XamMakeContent(XCONTENTTYPE_RESERVED, "Game");
+    XamRegisterContent(gameContent, "P:/x360/reblue-game/game");
+
+    // Mount game
+    XamContentCreateEx(0, "game", &gameContent, OPEN_EXISTING, nullptr, nullptr, 0, 0, nullptr);
+
+    // OS mounts game data to D:
+    XamContentCreateEx(0, "D", &gameContent, OPEN_EXISTING, nullptr, nullptr, 0, 0, nullptr);
+
+    XAudioInitializeSystem();
 
     uint32_t entry = LdrLoadModule(modulePath);
 
