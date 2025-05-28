@@ -65,49 +65,13 @@ void KiSystemStartup()
     g_userHeap.Init();
 
     const auto gameContent = XamMakeContent(XCONTENTTYPE_RESERVED, "Game");
-    const auto updateContent = XamMakeContent(XCONTENTTYPE_RESERVED, "Update");
     XamRegisterContent(gameContent, GAME_INSTALL_DIRECTORY "/game");
-    XamRegisterContent(updateContent, GAME_INSTALL_DIRECTORY "/update");
-
-    const auto saveFilePath = GetSaveFilePath(true);
-    bool saveFileExists = std::filesystem::exists(saveFilePath);
-
-    if (!saveFileExists)
-    {
-        // Copy base save data to modded save as fallback.
-        std::error_code ec;
-        std::filesystem::create_directories(saveFilePath.parent_path(), ec);
-
-        if (!ec)
-        {
-            std::filesystem::copy_file(GetSaveFilePath(false), saveFilePath, ec);
-            saveFileExists = !ec;
-        }
-    }
-
-    if (saveFileExists)
-    {
-        std::u8string savePathU8 = saveFilePath.parent_path().u8string();
-        XamRegisterContent(XamMakeContent(XCONTENTTYPE_SAVEDATA, "SYS-DATA"), (const char*)(savePathU8.c_str()));
-    }
 
     // Mount game
     XamContentCreateEx(0, "game", &gameContent, OPEN_EXISTING, nullptr, nullptr, 0, 0, nullptr);
-    XamContentCreateEx(0, "update", &updateContent, OPEN_EXISTING, nullptr, nullptr, 0, 0, nullptr);
 
     // OS mounts game data to D:
     XamContentCreateEx(0, "D", &gameContent, OPEN_EXISTING, nullptr, nullptr, 0, 0, nullptr);
-
-    std::error_code ec;
-    for (auto& file : std::filesystem::directory_iterator(GAME_INSTALL_DIRECTORY "/dlc", ec))
-    {
-        if (file.is_directory())
-        {
-            std::u8string fileNameU8 = file.path().filename().u8string();
-            std::u8string filePathU8 = file.path().u8string();
-            XamRegisterContent(XamMakeContent(XCONTENTTYPE_DLC, (const char*)(fileNameU8.c_str())), (const char*)(filePathU8.c_str()));
-        }
-    }
 
     XAudioInitializeSystem();
 }
@@ -203,27 +167,27 @@ int main(int argc, char *argv[])
 
     bool forceInstaller = false;
     bool forceDLCInstaller = false;
-    bool useDefaultWorkingDirectory = false;
+    bool useDefaultWorkingDirectory = true;
     bool forceInstallationCheck = false;
     bool graphicsApiRetry = false;
     const char *sdlVideoDriver = nullptr;
 
-    for (uint32_t i = 1; i < argc; i++)
-    {
-        forceInstaller = forceInstaller || (strcmp(argv[i], "--install") == 0);
-        forceDLCInstaller = forceDLCInstaller || (strcmp(argv[i], "--install-dlc") == 0);
-        useDefaultWorkingDirectory = useDefaultWorkingDirectory || (strcmp(argv[i], "--use-cwd") == 0);
-        forceInstallationCheck = forceInstallationCheck || (strcmp(argv[i], "--install-check") == 0);
-        graphicsApiRetry = graphicsApiRetry || (strcmp(argv[i], "--graphics-api-retry") == 0);
+    //for (uint32_t i = 1; i < argc; i++)
+    //{
+    //    forceInstaller = forceInstaller || (strcmp(argv[i], "--install") == 0);
+    //    forceDLCInstaller = forceDLCInstaller || (strcmp(argv[i], "--install-dlc") == 0);
+    //    useDefaultWorkingDirectory = useDefaultWorkingDirectory || (strcmp(argv[i], "--use-cwd") == 0);
+    //    forceInstallationCheck = forceInstallationCheck || (strcmp(argv[i], "--install-check") == 0);
+    //    graphicsApiRetry = graphicsApiRetry || (strcmp(argv[i], "--graphics-api-retry") == 0);
 
-        if (strcmp(argv[i], "--sdl-video-driver") == 0)
-        {
-            if ((i + 1) < argc)
-                sdlVideoDriver = argv[++i];
-            else
-                LOGN_WARNING("No argument was specified for --sdl-video-driver. Option will be ignored.");
-        }
-    }
+    //    if (strcmp(argv[i], "--sdl-video-driver") == 0)
+    //    {
+    //        if ((i + 1) < argc)
+    //            sdlVideoDriver = argv[++i];
+    //        else
+    //            LOGN_WARNING("No argument was specified for --sdl-video-driver. Option will be ignored.");
+    //    }
+    //}
 
     if (!useDefaultWorkingDirectory)
     {
@@ -234,58 +198,6 @@ int main(int argc, char *argv[])
 
     Config::Load();
 
-    //if (forceInstallationCheck)
-    //{
-    //    // Create the console to show progress to the user, otherwise it will seem as if the game didn't boot at all.
-    //    os::process::ShowConsole();
-
-    //    //Journal journal;
-    //    //double lastProgressMiB = 0.0;
-    //    //double lastTotalMib = 0.0;
-    //    //Installer::checkInstallIntegrity(GAME_INSTALL_DIRECTORY, journal, [&]()
-    //    //{
-    //    //    constexpr double MiBDivisor = 1024.0 * 1024.0;
-    //    //    constexpr double MiBProgressThreshold = 128.0;
-    //    //    double progressMiB = double(journal.progressCounter) / MiBDivisor;
-    //    //    double totalMiB = double(journal.progressTotal) / MiBDivisor;
-    //    //    if (journal.progressCounter > 0)
-    //    //    {
-    //    //        if ((progressMiB - lastProgressMiB) > MiBProgressThreshold)
-    //    //        {
-    //    //            fprintf(stdout, "Checking files: %0.2f MiB / %0.2f MiB\n", progressMiB, totalMiB);
-    //    //            lastProgressMiB = progressMiB;
-    //    //        }
-    //    //    }
-    //    //    else
-    //    //    {
-    //    //        if ((totalMiB - lastTotalMib) > MiBProgressThreshold)
-    //    //        {
-    //    //            fprintf(stdout, "Scanning files: %0.2f MiB\n", totalMiB);
-    //    //            lastTotalMib = totalMiB;
-    //    //        }
-    //    //    }
-
-    //    //    return true;
-    //    //});
-
-    //    char resultText[512];
-    //    uint32_t messageBoxStyle;
-    //    //if (journal.lastResult == Journal::Result::Success)
-    //    //{
-    //    //    snprintf(resultText, sizeof(resultText), "%s", Localise("IntegrityCheck_Success").c_str());
-    //    //    fprintf(stdout, "%s\n", resultText);
-    //    //    messageBoxStyle = SDL_MESSAGEBOX_INFORMATION;
-    //    //}
-    //    //else
-    //    //{
-    //    //    snprintf(resultText, sizeof(resultText), Localise("IntegrityCheck_Failed").c_str(), journal.lastErrorMessage.c_str());
-    //    //    fprintf(stderr, "%s\n", resultText);
-    //    //    messageBoxStyle = SDL_MESSAGEBOX_ERROR;
-    //    //}
-
-    //    SDL_ShowSimpleMessageBox(messageBoxStyle, GameWindow::GetTitle(), resultText, GameWindow::s_pWindow);
-    //    std::_Exit(int(journal.lastResult));
-    //}
 
 #if defined(_WIN32) && defined(UNLEASHED_RECOMP_D3D12)
     for (auto& dll : g_D3D12RequiredModules)
@@ -300,23 +212,11 @@ int main(int argc, char *argv[])
     }
 #endif
 
-    //// Check the time since the last time an update was checked. Store the new time if the difference is more than six hours.
-    //constexpr double TimeBetweenUpdateChecksInSeconds = 6 * 60 * 60;
-    //time_t timeNow = std::time(nullptr);
-    //double timeDifferenceSeconds = difftime(timeNow, Config::LastChecked);
-    //if (timeDifferenceSeconds > TimeBetweenUpdateChecksInSeconds)
-    //{
-    //    UpdateChecker::initialize();
-    //    UpdateChecker::start();
-    //    Config::LastChecked = timeNow;
-    //    Config::Save();
-    //}
-
     os::process::ShowConsole();
 
     HostStartup();
 
-    std::filesystem::path modulePath = "P:/x360/reblue-game/default.xex";
+    std::filesystem::path modulePath = "P:/x360/reblue-game/default_unencrypted.xex";
     bool isGameInstalled = true;// Installer::checkGameInstall(GAME_INSTALL_DIRECTORY, modulePath);
     bool runInstallerWizard = forceInstaller || forceDLCInstaller || !isGameInstalled;
     //if (runInstallerWizard)
