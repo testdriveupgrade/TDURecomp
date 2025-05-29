@@ -10,7 +10,7 @@
 	url = https://github.com/redorav/ddspp.git
 [submodule "tools/XenosRecomp"]
 	path = tools/XenosRecomp
-	url = https://github.com/hedge-dev/XenosRecomp.git
+	url = https://github.com/CRACKbomber/XenosRecomp.git
 [submodule "thirdparty/msdf-atlas-gen"]
 	path = thirdparty/msdf-atlas-gen
 	url = https://github.com/Chlumsky/msdf-atlas-gen.git
