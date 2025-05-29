@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
         }
     //}
 
-   // Video::StartPipelinePrecompilation();
+   Video::StartPipelinePrecompilation();
 
     GuestThread::Start({ entry, 0, 0 });
 

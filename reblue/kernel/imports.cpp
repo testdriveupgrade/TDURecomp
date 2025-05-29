@@ -3,6 +3,7 @@
 #include <kernel/kernel.h>
 #include <kernel/xam.h>
 #include <apu/audio.h>
+#include <gpu/video.h>
 
 GUEST_FUNCTION_HOOK(__imp__XGetVideoMode, reblue::kernel::VdQueryVideoMode); // XGetVideoMode
 GUEST_FUNCTION_HOOK(__imp__XNotifyGetNext, reblue::kernel::XNotifyGetNext);
@@ -252,7 +253,7 @@ GUEST_FUNCTION_STUB(__imp__swprintf);
 
 
 // gpu
-//GUEST_FUNCTION_HOOK(sub_82BD99B0, reblue::gpu::CreateDevice);
+GUEST_FUNCTION_HOOK(sub_8246B710, reblue::gpu::CreateDevice);
 
 //GUEST_FUNCTION_HOOK(sub_82BE6230, reblue::gpu::DestructResource);
 //GUEST_FUNCTION_HOOK(sub_82BE9300, reblue::gpu::LockTextureRect);

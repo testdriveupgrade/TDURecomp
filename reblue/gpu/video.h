@@ -427,76 +427,76 @@ extern void VideoConfigValueChangedCallback(class IConfigDef* config);
 
 namespace reblue {
     namespace gpu {
-        static uint32_t CreateDevice(uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, be<uint32_t>* a6);
+        extern uint32_t CreateDevice(uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, be<uint32_t>* a6);
 
-        static void DestructResource(GuestResource* resource);
+        extern void DestructResource(GuestResource* resource);
 
-        static void LockTextureRect(GuestTexture* texture, uint32_t, GuestLockedRect* lockedRect);
-        static void UnlockTextureRect(GuestTexture* texture);
+        extern void LockTextureRect(GuestTexture* texture, uint32_t, GuestLockedRect* lockedRect);
+        extern void UnlockTextureRect(GuestTexture* texture);
 
-        static void* LockVertexBuffer(GuestBuffer* buffer, uint32_t, uint32_t, uint32_t flags);
-        static void UnlockVertexBuffer(GuestBuffer* buffer);
-        static void GetVertexBufferDesc(GuestBuffer* buffer, GuestBufferDesc* desc);
-        static void* LockIndexBuffer(GuestBuffer* buffer, uint32_t, uint32_t, uint32_t flags);
+        extern void* LockVertexBuffer(GuestBuffer* buffer, uint32_t, uint32_t, uint32_t flags);
+        extern void UnlockVertexBuffer(GuestBuffer* buffer);
+        extern void GetVertexBufferDesc(GuestBuffer* buffer, GuestBufferDesc* desc);
+        extern void* LockIndexBuffer(GuestBuffer* buffer, uint32_t, uint32_t, uint32_t flags);
 
-        static void UnlockIndexBuffer(GuestBuffer* buffer);
-        static void GetIndexBufferDesc(GuestBuffer* buffer, GuestBufferDesc* desc);
-        static void GetSurfaceDesc(GuestSurface* surface, GuestSurfaceDesc* desc);
+        extern void UnlockIndexBuffer(GuestBuffer* buffer);
+        extern void GetIndexBufferDesc(GuestBuffer* buffer, GuestBufferDesc* desc);
+        extern void GetSurfaceDesc(GuestSurface* surface, GuestSurfaceDesc* desc);
 
-        static void GetVertexDeclaration(GuestVertexDeclaration* vertexDeclaration, GuestVertexElement* vertexElements, be<uint32_t>* count);
+        extern void GetVertexDeclaration(GuestVertexDeclaration* vertexDeclaration, GuestVertexElement* vertexElements, be<uint32_t>* count);
 
-        static uint32_t HashVertexDeclaration(uint32_t vertexDeclaration);
+        extern uint32_t HashVertexDeclaration(uint32_t vertexDeclaration);
 
-        static GuestSurface* GetBackBuffer();
+        extern GuestSurface* GetBackBuffer();
 
-        static GuestTexture* CreateTexture(uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t usage, uint32_t format, uint32_t pool, uint32_t type);
-        static GuestBuffer* CreateVertexBuffer(uint32_t length);
+        extern GuestTexture* CreateTexture(uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t usage, uint32_t format, uint32_t pool, uint32_t type);
+        extern GuestBuffer* CreateVertexBuffer(uint32_t length);
 
-        static GuestBuffer* CreateIndexBuffer(uint32_t length, uint32_t, uint32_t format);
+        extern GuestBuffer* CreateIndexBuffer(uint32_t length, uint32_t, uint32_t format);
 
-        static GuestSurface* CreateSurface(uint32_t width, uint32_t height, uint32_t format, uint32_t multiSample);
+        extern GuestSurface* CreateSurface(uint32_t width, uint32_t height, uint32_t format, uint32_t multiSample);
 
-        static void StretchRect(GuestDevice* device, uint32_t flags, uint32_t, GuestTexture* texture);
+        extern void StretchRect(GuestDevice* device, uint32_t flags, uint32_t, GuestTexture* texture);
 
-        static void SetRenderTarget(GuestDevice* device, uint32_t index, GuestSurface* renderTarget);
+        extern void SetRenderTarget(GuestDevice* device, uint32_t index, GuestSurface* renderTarget);
 
-        static void SetDepthStencilSurface(GuestDevice* device, GuestSurface* depthStencil);
+        extern void SetDepthStencilSurface(GuestDevice* device, GuestSurface* depthStencil);
 
-        static void Clear(GuestDevice* device, uint32_t flags, uint32_t, be<float>* color, double z);
+        extern void Clear(GuestDevice* device, uint32_t flags, uint32_t, be<float>* color, double z);
 
-        static void SetViewport(GuestDevice* device, GuestViewport* viewport);
+        extern void SetViewport(GuestDevice* device, GuestViewport* viewport);
 
-        static void SetTexture(GuestDevice* device, uint32_t index, GuestTexture* texture);
-        static void SetScissorRect(GuestDevice* device, GuestRect* rect);
+        extern void SetTexture(GuestDevice* device, uint32_t index, GuestTexture* texture);
+        extern void SetScissorRect(GuestDevice* device, GuestRect* rect);
 
-        static void DrawPrimitive(GuestDevice* device, uint32_t primitiveType, uint32_t startVertex, uint32_t primitiveCount);
+        extern void DrawPrimitive(GuestDevice* device, uint32_t primitiveType, uint32_t startVertex, uint32_t primitiveCount);
 
-        static void DrawIndexedPrimitive(GuestDevice* device, uint32_t primitiveType, int32_t baseVertexIndex, uint32_t startIndex, uint32_t primCount);
+        extern void DrawIndexedPrimitive(GuestDevice* device, uint32_t primitiveType, int32_t baseVertexIndex, uint32_t startIndex, uint32_t primCount);
 
-        static void DrawPrimitiveUP(GuestDevice* device, uint32_t primitiveType, uint32_t primitiveCount, void* vertexStreamZeroData, uint32_t vertexStreamZeroStride);
+        extern void DrawPrimitiveUP(GuestDevice* device, uint32_t primitiveType, uint32_t primitiveCount, void* vertexStreamZeroData, uint32_t vertexStreamZeroStride);
 
-        static GuestVertexDeclaration* CreateVertexDeclaration(GuestVertexElement* vertexElements);
-        static void SetVertexDeclaration(GuestDevice* device, GuestVertexDeclaration* vertexDeclaration);
-        static GuestShader* CreateVertexShader(const be<uint32_t>* function);
+        extern GuestVertexDeclaration* CreateVertexDeclaration(GuestVertexElement* vertexElements);
+        extern void SetVertexDeclaration(GuestDevice* device, GuestVertexDeclaration* vertexDeclaration);
+        extern GuestShader* CreateVertexShader(const be<uint32_t>* function);
 
-        static void SetVertexShader(GuestDevice* device, GuestShader* shader);
+        extern void SetVertexShader(GuestDevice* device, GuestShader* shader);
 
-        static void SetStreamSource(GuestDevice* device, uint32_t index, GuestBuffer* buffer, uint32_t offset, uint32_t stride);
+        extern void SetStreamSource(GuestDevice* device, uint32_t index, GuestBuffer* buffer, uint32_t offset, uint32_t stride);
 
-        static void SetIndices(GuestDevice* device, GuestBuffer* buffer);
+        extern void SetIndices(GuestDevice* device, GuestBuffer* buffer);
 
-        static GuestShader* CreatePixelShader(const be<uint32_t>* function);
+        extern GuestShader* CreatePixelShader(const be<uint32_t>* function);
 
-        static void SetPixelShader(GuestDevice* device, GuestShader* shader);
+        extern void SetPixelShader(GuestDevice* device, GuestShader* shader);
 
-        static void D3DXFillTexture(GuestTexture* texture, uint32_t function, void* data);
+        extern void D3DXFillTexture(GuestTexture* texture, uint32_t function, void* data);
 
-        static void D3DXFillVolumeTexture(GuestTexture* texture, uint32_t function, void* data);
+        extern void D3DXFillVolumeTexture(GuestTexture* texture, uint32_t function, void* data);
 
-        static void MakePictureData(GuestPictureData* pictureData, uint8_t* data, uint32_t dataSize);
+        extern void MakePictureData(GuestPictureData* pictureData, uint8_t* data, uint32_t dataSize);
 
-        static void ScreenShaderInit(be<uint32_t>* a1, uint32_t a2, uint32_t a3, GuestVertexElement* vertexElements);
+        extern void ScreenShaderInit(be<uint32_t>* a1, uint32_t a2, uint32_t a3, GuestVertexElement* vertexElements);
 
-        static void SetResolution(be<uint32_t>* device);
+        extern void SetResolution(be<uint32_t>* device);
     }
 }

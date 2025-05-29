@@ -400,42 +400,44 @@ enum class PipelineTaskType
     RecompilePipelines
 };
 
-//struct PipelineTask
-//{
-//    PipelineTaskType type{};
-//    boost::shared_ptr<Hedgehog::Database::CDatabaseData> databaseData;
-//};
+struct PipelineTask
+{
+    PipelineTaskType type{};
+    //boost::shared_ptr<Hedgehog::Database::CDatabaseData> databaseData;
+};
 //
-//static reblue::kernel::Mutex g_pipelineTaskMutex;
-//static std::vector<PipelineTask> g_pipelineTaskQueue;
-//
-//static void EnqueuePipelineTask(PipelineTaskType type, const boost::shared_ptr<Hedgehog::Database::CDatabaseData>& databaseData)
-//{
-//    // Precompiled pipelines deliberately do not increment 
-//    // this counter to overlap the compilation with intro logos.
-//    if (type != PipelineTaskType::PrecompilePipelines)
-//        ++g_compilingPipelineTaskCount;
-//
-//    {
-//        std::lock_guard lock(g_pipelineTaskMutex);
-//        g_pipelineTaskQueue.emplace_back(type, databaseData);
-//    }
-//
-//    if ((++g_pendingPipelineTaskCount) == 1)
-//        g_pendingPipelineTaskCount.notify_one();
-//}
+static reblue::kernel::Mutex g_pipelineTaskMutex;
+static std::vector<PipelineTask> g_pipelineTaskQueue;
 
-//static const PipelineState g_pipelineStateCache[] =
-//{
-//#include "cache/pipeline_state_cache.h"
-//};
-//
-//#include "cache/vertex_element_cache.h"
-//
-//static uint8_t* const g_vertexDeclarationCache[] =
-//{
-//#include "cache/vertex_declaration_cache.h"
-//};
+// static void EnqueuePipelineTask(PipelineTaskType type, const boost::shared_ptr<Hedgehog::Database::CDatabaseData>& databaseData)
+static void EnqueuePipelineTask(PipelineTaskType type)
+{
+    // Precompiled pipelines deliberately do not increment 
+    // this counter to overlap the compilation with intro logos.
+    if (type != PipelineTaskType::PrecompilePipelines)
+        ++g_compilingPipelineTaskCount;
+
+    {
+        std::lock_guard lock(g_pipelineTaskMutex);
+        //g_pipelineTaskQueue.emplace_back(type, databaseData);
+        g_pipelineTaskQueue.emplace_back(type);
+    }
+
+    if ((++g_pendingPipelineTaskCount) == 1)
+        g_pendingPipelineTaskCount.notify_one();
+}
+
+static const PipelineState g_pipelineStateCache[] =
+{
+#include "cache/pipeline_state_cache.h"
+};
+
+#include "cache/vertex_element_cache.h"
+
+static uint8_t* const g_vertexDeclarationCache[] =
+{
+#include "cache/vertex_declaration_cache.h"
+};
 
 static xxHashMap<std::pair<uint32_t, std::unique_ptr<RenderSampler>>> g_samplerStates;
 
@@ -755,9 +757,9 @@ static void FlushBarriers()
     }
 }
 
-// todo (shader cache)
 static std::unique_ptr<uint8_t[]> g_shaderCache;
 static std::unique_ptr<uint8_t[]> g_buttonBcDiff;
+
 static void LoadEmbeddedResources()
 {
     if (g_vulkan)
@@ -1786,7 +1788,7 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
 
     g_capabilities = g_device->getCapabilities();
 
-    //LoadEmbeddedResources();
+    LoadEmbeddedResources();
 
     constexpr uint64_t LowEndMemoryLimit = 2048ULL * 1024ULL * 1024ULL;
     RenderDeviceDescription deviceDescription = g_device->getDescription();
@@ -2108,7 +2110,15 @@ static void ProcUnlockTextureRect(const RenderCommand& cmd)
         RenderTextureCopyLocation::PlacedFootprint(allocation.buffer, args.texture->format, args.texture->width, args.texture->height, 1, pitch / RenderFormatSize(args.texture->format), allocation.offset));
 }
 
+static void* LockBuffer(GuestBuffer* buffer, uint32_t flags)
+{
+    buffer->lockedReadOnly = (flags & 0x10) != 0;
 
+    if (buffer->mappedMemory == nullptr)
+        buffer->mappedMemory = reblue::kernel::g_userHeap.AllocPhysical(buffer->dataSize, 0x10);
+
+    return buffer->mappedMemory;
+}
 
 static std::atomic<uint32_t> g_bufferUploadCount = 0;
 
@@ -2645,12 +2655,11 @@ void Video::Present()
     g_renderQueue.enqueue(cmd);
 
     // All the shaders are available at this point. We can precompile embedded PSOs then.
-    // TODO...
-    //if (g_shouldPrecompilePipelines)
-    //{
-    //    EnqueuePipelineTask(PipelineTaskType::PrecompilePipelines, {});
-    //    g_shouldPrecompilePipelines = false;
-    //}
+    if (g_shouldPrecompilePipelines)
+    {
+        EnqueuePipelineTask(PipelineTaskType::PrecompilePipelines);
+        g_shouldPrecompilePipelines = false;
+    }
 
     g_executedCommandList.wait(false);
     g_executedCommandList = false;
@@ -5249,101 +5258,1146 @@ static GuestShader* g_moviePixelShader;
 static GuestVertexDeclaration* g_movieVertexDeclaration;
 
 
-#pragma region Shader Pipeline Tasks
-
 // Normally, we could delay setting IsMadeOne, but the game relies on that flag
 // being present to handle load priority. To work around that, we can prevent
 // IsMadeAll from being set until the compilation is finished. Time for a custom flag!
-//enum
-//{
-//    eDatabaseDataFlags_CompilingPipelines = 0x80
-//};
-//// This is passed to pipeline compilation threads to keep the loading screen busy until 
-//// all of them are finished. A shared pointer makes sure the destructor is called only once.
-//struct PipelineTaskToken
-//{
-//    PipelineTaskType type{};
-//    boost::shared_ptr<Hedgehog::Database::CDatabaseData> databaseData;
-//
-//    PipelineTaskToken() : databaseData()
-//    {
-//    }
-//
-//    PipelineTaskToken(const PipelineTaskToken&) = delete;
-//
-//    PipelineTaskToken(PipelineTaskToken&& other)
-//        : type(std::exchange(other.type, PipelineTaskType::Null))
-//        , databaseData(std::exchange(other.databaseData, nullptr))
-//    {
-//    }
-//
-//    ~PipelineTaskToken()
-//    {
-//        if (type != PipelineTaskType::Null)
-//        {
-//            if (databaseData.get() != nullptr)
-//                databaseData->m_Flags &= ~eDatabaseDataFlags_CompilingPipelines;
-//
-//            if ((--g_compilingPipelineTaskCount) == 0)
-//                g_compilingPipelineTaskCount.notify_one();
-//        }
-//    }
-//};
-//
-//struct PipelineStateQueueItem
-//{
-//    XXH64_hash_t pipelineHash;
-//    PipelineState pipelineState;
-//    std::shared_ptr<PipelineTaskToken> token;
-//#ifdef ASYNC_PSO_DEBUG
-//    std::string pipelineName;
-//#endif
-//};
-//
-//static moodycamel::BlockingConcurrentQueue<PipelineStateQueueItem> g_pipelineStateQueue;
-//
-//static void CompilePipeline(XXH64_hash_t pipelineHash, const PipelineState& pipelineState
-//#ifdef ASYNC_PSO_DEBUG
-//    , const std::string& pipelineName
-//#endif
-//)
-//{
-//    auto pipeline = CreateGraphicsPipeline(pipelineState);
-//#ifdef ASYNC_PSO_DEBUG
-//    pipeline->setName(pipelineName);
-//#endif
-//
-//    // Will get dropped in render thread if a different thread already managed to compile this.
-//    RenderCommand cmd;
-//    cmd.type = RenderCommandType::AddPipeline;
-//    cmd.addPipeline.hash = pipelineHash;
-//    cmd.addPipeline.pipeline = pipeline.release();
-//    g_renderQueue.enqueue(cmd);
-//}
-//
-//
+enum
+{
+    eDatabaseDataFlags_CompilingPipelines = 0x80
+};
+
+// This is passed to pipeline compilation threads to keep the loading screen busy until 
+// all of them are finished. A shared pointer makes sure the destructor is called only once.
+struct PipelineTaskToken
+{
+    PipelineTaskType type{};
+    //boost::shared_ptr<Hedgehog::Database::CDatabaseData> databaseData;
+
+    PipelineTaskToken() // : databaseData()
+    {
+    }
+
+    PipelineTaskToken(const PipelineTaskToken&) = delete;
+
+    PipelineTaskToken(PipelineTaskToken&& other)
+        : type(std::exchange(other.type, PipelineTaskType::Null))
+        //, databaseData(std::exchange(other.databaseData, nullptr))
+    {
+    }
+
+    ~PipelineTaskToken()
+    {
+        if (type != PipelineTaskType::Null)
+        {
+            //if (databaseData.get() != nullptr)
+            //    databaseData->m_Flags &= ~eDatabaseDataFlags_CompilingPipelines;
+
+            if ((--g_compilingPipelineTaskCount) == 0)
+                g_compilingPipelineTaskCount.notify_one();
+        }
+    }
+};
+
+struct PipelineStateQueueItem
+{
+    XXH64_hash_t pipelineHash;
+    PipelineState pipelineState;
+    std::shared_ptr<PipelineTaskToken> token;
+#ifdef ASYNC_PSO_DEBUG
+    std::string pipelineName;
+#endif
+};
+
+static moodycamel::BlockingConcurrentQueue<PipelineStateQueueItem> g_pipelineStateQueue;
+
+static void CompilePipeline(XXH64_hash_t pipelineHash, const PipelineState& pipelineState
+#ifdef ASYNC_PSO_DEBUG
+    , const std::string& pipelineName
+#endif
+)
+{
+    auto pipeline = CreateGraphicsPipeline(pipelineState);
+#ifdef ASYNC_PSO_DEBUG
+    pipeline->setName(pipelineName);
+#endif
+
+    // Will get dropped in render thread if a different thread already managed to compile this.
+    RenderCommand cmd;
+    cmd.type = RenderCommandType::AddPipeline;
+    cmd.addPipeline.hash = pipelineHash;
+    cmd.addPipeline.pipeline = pipeline.release();
+    g_renderQueue.enqueue(cmd);
+}
+
+static void PipelineCompilerThread()
+{
+#ifdef _WIN32
+    int threadPriority = THREAD_PRIORITY_LOWEST;
+    SetThreadPriority(GetCurrentThread(), threadPriority);
+    GuestThread::SetThreadName(GetCurrentThreadId(), "Pipeline Compiler Thread");
+#endif
+
+    std::unique_ptr<GuestThreadContext> ctx;
+
+    while (true)
+    {
+        PipelineStateQueueItem queueItem;
+        g_pipelineStateQueue.wait_dequeue(queueItem);
+
+        if (ctx == nullptr)
+            ctx = std::make_unique<GuestThreadContext>(0);
+
+#ifdef _WIN32
+        int newThreadPriority = threadPriority;
+
+        bool loading = false;// *SWA::SGlobals::ms_IsLoading;
+        if (loading)
+            newThreadPriority = THREAD_PRIORITY_HIGHEST;
+        else
+            newThreadPriority = THREAD_PRIORITY_LOWEST;
+
+        if (newThreadPriority != threadPriority)
+        {
+            SetThreadPriority(GetCurrentThread(), newThreadPriority);
+            threadPriority = newThreadPriority;
+        }
+#endif
+
+        CompilePipeline(queueItem.pipelineHash, queueItem.pipelineState
+#ifdef ASYNC_PSO_DEBUG
+            , queueItem.pipelineName.c_str()
+#endif
+        );
+
+        std::this_thread::yield();
+    }
+}
+
+static std::vector<std::unique_ptr<std::thread>> g_pipelineCompilerThreads = []()
+    {
+        size_t threadCount = std::max(2u, (std::thread::hardware_concurrency() * 2) / 3);
+
+        std::vector<std::unique_ptr<std::thread>> threads(threadCount);
+        for (auto& thread : threads)
+            thread = std::make_unique<std::thread>(PipelineCompilerThread);
+
+        return threads;
+    }();
+
+static constexpr uint32_t MODEL_DATA_VFTABLE = 0x82073A44;
+static constexpr uint32_t TERRAIN_MODEL_DATA_VFTABLE = 0x8211D25C;
+static constexpr uint32_t PARTICLE_MATERIAL_VFTABLE = 0x8211F198;
+
 // Allocate the shared pointer only when new compilations are happening.
 // If nothing was compiled, the local "token" variable will get destructed with RAII instead.
-//struct PipelineTaskTokenPair
+struct PipelineTaskTokenPair
+{
+    PipelineTaskToken token;
+    std::shared_ptr<PipelineTaskToken> sharedToken;
+};
+
+// Having this separate, because I don't want to lock a mutex in the render thread before
+// every single draw. Might be worth profiling to see if it actually has an impact and merge them.
+static xxHashMap<PipelineState> g_asyncPipelineStates;
+
+static void EnqueueGraphicsPipelineCompilation(
+    const PipelineState& pipelineState, 
+    PipelineTaskTokenPair& tokenPair, 
+    const char* name,
+    bool isPrecompiledPipeline = false)
+{
+    XXH64_hash_t hash = XXH3_64bits(&pipelineState, sizeof(pipelineState));
+    bool shouldCompile = g_asyncPipelineStates.emplace(hash, pipelineState).second;
+
+    if (shouldCompile)
+    {
+        bool loading = false;//*SWA::SGlobals::ms_IsLoading;
+        if (!loading && isPrecompiledPipeline)
+        {
+            // We can just compile here during the logos.
+            CompilePipeline(hash, pipelineState
+#ifdef ASYNC_PSO_DEBUG
+                , fmt::format("CACHE {} {:X}", name, hash)
+#endif
+            );
+        }
+        else
+        {
+            if (tokenPair.sharedToken == nullptr && tokenPair.token.type != PipelineTaskType::Null)
+                tokenPair.sharedToken = std::make_shared<PipelineTaskToken>(std::move(tokenPair.token));
+
+            PipelineStateQueueItem queueItem;
+            queueItem.pipelineHash = hash;
+            queueItem.pipelineState = pipelineState;
+            queueItem.token = tokenPair.sharedToken;
+#ifdef ASYNC_PSO_DEBUG
+            queueItem.pipelineName = fmt::format("ASYNC {} {:X}", name, hash);
+#endif
+            g_pipelineStateQueue.enqueue(queueItem);
+        }
+    }
+
+#ifdef PSO_CACHING_CLEANUP
+    if (shouldCompile && isPrecompiledPipeline)
+    {
+        std::lock_guard lock(g_pipelineCacheMutex);
+        g_pipelineStatesToCache.emplace(hash, pipelineState);
+    }
+#endif
+
+#ifdef PSO_CACHING
+    if (!isPrecompiledPipeline)
+    {
+        std::lock_guard lock(g_pipelineCacheMutex);
+        g_pipelineStatesToCache.erase(hash);
+    }
+#endif
+}
+
+struct CompilationArgs
+{
+    PipelineTaskTokenPair tokenPair;
+    bool noGI{};
+    bool hasMoreThanOneBone{};
+    bool velocityMapQuickStep{};
+    bool objectIcon{};
+    bool instancing{};
+};
+
+//enum class MeshLayer
 //{
-//    PipelineTaskToken token;
-//    std::shared_ptr<PipelineTaskToken> sharedToken;
+//    Opaque,
+//    Transparent,
+//    PunchThrough,
+//    Special
 //};
 //
-//// Having this separate, because I don't want to lock a mutex in the render thread before
-//// every single draw. Might be worth profiling to see if it actually has an impact and merge them.
-//static xxHashMap<PipelineState> g_asyncPipelineStates;
+//struct Mesh
+//{
+//    uint32_t vertexSize{};
+//    uint32_t morphTargetVertexSize{};
+//    GuestVertexDeclaration* vertexDeclaration{};
+//    //Hedgehog::Mirage::CMaterialData* material{};
+//    MeshLayer layer{};
+//    bool morphModel{};
+//};
+//
+//static void CompileMeshPipeline(const Mesh& mesh, CompilationArgs& args)
+//{
+//    if (mesh.material == nullptr || mesh.material->m_spShaderListData.get() == nullptr)
+//        return;
+//
+//    auto& shaderList = mesh.material->m_spShaderListData;
+//
+//    bool isFur = !mesh.morphModel && !args.instancing &&
+//        strstr(shaderList->m_TypeAndName.c_str(), "Fur") != nullptr;
+//
+//    bool isSky = !mesh.morphModel && !args.instancing &&
+//        strstr(shaderList->m_TypeAndName.c_str(), "Sky") != nullptr;
+//
+//    bool isSonicMouth = !mesh.morphModel && !args.instancing &&
+//        strcmp(mesh.material->m_TypeAndName.c_str() + 2, "sonic_gm_mouth_duble") == 0 &&
+//        strcmp(shaderList->m_TypeAndName.c_str() + 3, "SonicSkin_dspf[b]") == 0;
+//
+//    bool compiledOutsideMainFramebuffer = !args.instancing && !isFur && !isSky;
+//
+//    bool constTexCoord;
+//    if (args.instancing)
+//    {
+//        constTexCoord = false;
+//    }
+//    else
+//    {
+//        constTexCoord = true;
+//        if (mesh.material->m_spTexsetData.get() != nullptr)
+//        {
+//            for (size_t i = 1; i < mesh.material->m_spTexsetData->m_TextureList.size(); i++)
+//            {
+//                if (mesh.material->m_spTexsetData->m_TextureList[i]->m_TexcoordIndex !=
+//                    mesh.material->m_spTexsetData->m_TextureList[0]->m_TexcoordIndex)
+//                {
+//                    constTexCoord = false;
+//                    break;
+//                }
+//            }
+//        }
+//    }
+//
+//    // Shadow pipeline.
+//    if (compiledOutsideMainFramebuffer && (mesh.layer == MeshLayer::Opaque || mesh.layer == MeshLayer::PunchThrough))
+//    {
+//        PipelineState pipelineState{};
+//
+//        if (mesh.layer == MeshLayer::PunchThrough)
+//        {
+//            pipelineState.vertexShader = FindShaderCacheEntry(0xDD4FA7BB53876300)->guestShader;
+//            pipelineState.pixelShader = FindShaderCacheEntry(0xE2ECA594590DDE8B)->guestShader;
+//        }
+//        else
+//        {
+//            pipelineState.vertexShader = FindShaderCacheEntry(0x8E4BB23465BD909E)->guestShader;
+//        }
+//
+//        pipelineState.vertexDeclaration = mesh.vertexDeclaration;
+//        pipelineState.cullMode = mesh.material->m_DoubleSided ? RenderCullMode::NONE : RenderCullMode::BACK;
+//        pipelineState.zFunc = RenderComparisonFunction::LESS_EQUAL;
+//        
+//        if (g_capabilities.dynamicDepthBias)
+//        {
+//            // Put common depth bias values for reducing unnecessary calls.
+//            if (!g_vulkan)
+//            {
+//                pipelineState.depthBias = COMMON_DEPTH_BIAS_VALUE;
+//                pipelineState.slopeScaledDepthBias = COMMON_SLOPE_SCALED_DEPTH_BIAS_VALUE;
+//            }
+//        }
+//        else 
+//        {
+//            pipelineState.depthBias = (1 << 24) * (*reinterpret_cast<be<float>*>(g_memory.Translate(0x83302760)));
+//            pipelineState.slopeScaledDepthBias = *reinterpret_cast<be<float>*>(g_memory.Translate(0x83302764));
+//        }
+//
+//        pipelineState.colorWriteEnable = 0;
+//        pipelineState.primitiveTopology = RenderPrimitiveTopology::TRIANGLE_STRIP;
+//        pipelineState.vertexStrides[0] = mesh.vertexSize;
+//        pipelineState.depthStencilFormat = RenderFormat::D32_FLOAT;
+//
+//        if (mesh.layer == MeshLayer::PunchThrough)
+//            pipelineState.specConstants |= SPEC_CONSTANT_ALPHA_TEST;
+//
+//        const char* name = (mesh.layer == MeshLayer::PunchThrough ? "MakeShadowMapTransparent" : "MakeShadowMap");
+//        SanitizePipelineState(pipelineState);
+//        EnqueueGraphicsPipelineCompilation(pipelineState, args.tokenPair, name);
+//
+//        // Morph models have 4 targets where unused targets default to the first vertex stream.
+//        if (mesh.morphModel)
+//        {
+//            for (size_t i = 0; i < 5; i++)
+//            {
+//                for (size_t j = 0; j < 4; j++)
+//                    pipelineState.vertexStrides[j + 1] = i > j ? mesh.morphTargetVertexSize : mesh.vertexSize;
+//
+//                SanitizePipelineState(pipelineState);
+//                EnqueueGraphicsPipelineCompilation(pipelineState, args.tokenPair, name);
+//            }
+//        }
+//    }
+//
+//    // Motion blur pipeline. We could normally do the player here only, but apparently Werehog enemies also have object blur.
+//    // TODO: Do punch through meshes get rendered?
+//    if (!mesh.morphModel && compiledOutsideMainFramebuffer && args.hasMoreThanOneBone && mesh.layer == MeshLayer::Opaque)
+//    {
+//        PipelineState pipelineState{};
+//        pipelineState.vertexShader = FindShaderCacheEntry(0x4620B236DC38100C)->guestShader;
+//        pipelineState.pixelShader = FindShaderCacheEntry(0xBBDB735BEACC8F41)->guestShader;
+//        pipelineState.vertexDeclaration = mesh.vertexDeclaration;
+//        pipelineState.cullMode = RenderCullMode::NONE;
+//        pipelineState.zFunc = RenderComparisonFunction::GREATER_EQUAL;
+//        pipelineState.primitiveTopology = RenderPrimitiveTopology::TRIANGLE_STRIP;
+//        pipelineState.vertexStrides[0] = mesh.vertexSize;
+//        pipelineState.renderTargetFormat = RenderFormat::R8G8B8A8_UNORM;
+//        pipelineState.depthStencilFormat = RenderFormat::D32_FLOAT;
+//        pipelineState.specConstants = SPEC_CONSTANT_REVERSE_Z;
+//
+//        SanitizePipelineState(pipelineState);
+//        EnqueueGraphicsPipelineCompilation(pipelineState, args.tokenPair, "FxVelocityMap");
+//
+//        if (args.velocityMapQuickStep)
+//        {
+//            pipelineState.vertexShader = FindShaderCacheEntry(0x99DC3F27E402700D)->guestShader;
+//            SanitizePipelineState(pipelineState);
+//            EnqueueGraphicsPipelineCompilation(pipelineState, args.tokenPair, "FxVelocityMapQuickStep");
+//        }
+//    }
+//
+//    uint32_t defaultStr = args.instancing ? 0x820C8734 : 0x8202DDBC; // "instancing" for instancing, "default" for regular
+//    guest_stack_var<Hedgehog::Base::CStringSymbol> defaultSymbol(reinterpret_cast<const char*>(g_memory.Translate(defaultStr)));
+//    auto defaultFindResult = shaderList->m_PixelShaderPermutations.find(*defaultSymbol);
+//    if (defaultFindResult == shaderList->m_PixelShaderPermutations.end())
+//        return;
+//
+//    uint32_t pixelShaderSubPermutationsToCompile = 0;
+//    if (constTexCoord) pixelShaderSubPermutationsToCompile |= 0x1;
+//    if (args.noGI) pixelShaderSubPermutationsToCompile |= 0x2;
+//
+//    if ((defaultFindResult->second.m_SubPermutations.get() & (1 << pixelShaderSubPermutationsToCompile)) == 0) pixelShaderSubPermutationsToCompile &= ~0x1;
+//    if ((defaultFindResult->second.m_SubPermutations.get() & (1 << pixelShaderSubPermutationsToCompile)) == 0) pixelShaderSubPermutationsToCompile &= ~0x2;
+//
+//    uint32_t noneStr = mesh.morphModel ? 0x820D72F0 : 0x8200D938; // "p" for morph, "none" for regular
+//    guest_stack_var<Hedgehog::Base::CStringSymbol> noneSymbol(reinterpret_cast<const char*>(g_memory.Translate(noneStr)));
+//    auto noneFindResult = defaultFindResult->second.m_VertexShaderPermutations.find(*noneSymbol);
+//    if (noneFindResult == defaultFindResult->second.m_VertexShaderPermutations.end())
+//        return;
+//
+//    uint32_t vertexShaderSubPermutationsToCompile = 0;
+//    if (constTexCoord) vertexShaderSubPermutationsToCompile |= 0x1;
+//
+//    if ((noneFindResult->second->m_SubPermutations.get() & (1 << vertexShaderSubPermutationsToCompile)) == 0)
+//        vertexShaderSubPermutationsToCompile &= ~0x1;
+//
+//    auto vertexDeclaration = mesh.vertexDeclaration;
+//    bool instancing = args.instancing || isFur;
+//
+//    if (instancing)
+//    {
+//        GuestVertexElement vertexElements[64];
+//        memcpy(vertexElements, mesh.vertexDeclaration->vertexElements.get(), (mesh.vertexDeclaration->vertexElementCount - 1) * sizeof(GuestVertexElement));
+//
+//        if (args.instancing)
+//        {
+//            vertexElements[mesh.vertexDeclaration->vertexElementCount - 1] = { 1, 0, 0x2A23B9, 0, 5, 4 };
+//            vertexElements[mesh.vertexDeclaration->vertexElementCount] = { 1, 12, 0x2C2159, 0, 5, 5 };
+//            vertexElements[mesh.vertexDeclaration->vertexElementCount + 1] = { 1, 16, 0x2C2159, 0, 5, 6 };
+//            vertexElements[mesh.vertexDeclaration->vertexElementCount + 2] = { 1, 20, 0x182886, 0, 10, 1 };
+//            vertexElements[mesh.vertexDeclaration->vertexElementCount + 3] = { 2, 0, 0x2C82A1, 0, 0, 1 };
+//            vertexElements[mesh.vertexDeclaration->vertexElementCount + 4] = D3DDECL_END();
+//        }
+//        else if (isFur)
+//        {
+//            vertexElements[mesh.vertexDeclaration->vertexElementCount - 1] = { 1, 0, 0x2C82A1, 0, 0, 1 };
+//            vertexElements[mesh.vertexDeclaration->vertexElementCount] = { 2, 0, 0x2C83A4, 0, 0, 2 };
+//            vertexElements[mesh.vertexDeclaration->vertexElementCount + 1] = D3DDECL_END();
+//        }
+//
+//        vertexDeclaration = CreateVertexDeclarationWithoutAddRef(vertexElements);
+//    }
+//
+//    for (auto& [pixelShaderSubPermutations, pixelShader] : defaultFindResult->second.m_PixelShaders)
+//    {
+//        if (pixelShader.get() == nullptr || (pixelShaderSubPermutations & 0x3) != pixelShaderSubPermutationsToCompile)
+//            continue;
+//
+//        for (auto& [vertexShaderSubPermutations, vertexShader] : noneFindResult->second->m_VertexShaders)
+//        {
+//            if (vertexShader.get() == nullptr || (vertexShaderSubPermutations & 0x1) != vertexShaderSubPermutationsToCompile)
+//                continue;
+//
+//            PipelineState pipelineState{};
+//            pipelineState.vertexShader = reinterpret_cast<GuestShader*>(vertexShader->m_spCode->m_pD3DVertexShader.get());
+//            pipelineState.pixelShader = reinterpret_cast<GuestShader*>(pixelShader->m_spCode->m_pD3DPixelShader.get());
+//            pipelineState.vertexDeclaration = vertexDeclaration;
+//            pipelineState.instancing = instancing;
+//            pipelineState.zWriteEnable = !isSky && mesh.layer != MeshLayer::Transparent;
+//            pipelineState.srcBlend = RenderBlend::SRC_ALPHA;
+//            pipelineState.destBlend = mesh.material->m_Additive ? RenderBlend::ONE : RenderBlend::INV_SRC_ALPHA;
+//            pipelineState.cullMode = mesh.material->m_DoubleSided ? RenderCullMode::NONE : RenderCullMode::BACK;
+//            pipelineState.zFunc = RenderComparisonFunction::GREATER_EQUAL; // Reverse Z
+//            pipelineState.alphaBlendEnable = mesh.layer == MeshLayer::Transparent || mesh.layer == MeshLayer::Special;
+//            pipelineState.srcBlendAlpha = RenderBlend::SRC_ALPHA;
+//            pipelineState.destBlendAlpha = RenderBlend::INV_SRC_ALPHA;
+//            pipelineState.primitiveTopology = RenderPrimitiveTopology::TRIANGLE_STRIP;
+//            pipelineState.vertexStrides[0] = mesh.vertexSize;
+//
+//            if (args.instancing)
+//            {
+//                pipelineState.vertexStrides[1] = 24;
+//                pipelineState.vertexStrides[2] = 4;
+//            }
+//            else if (isFur)
+//            {
+//                pipelineState.vertexStrides[1] = 4;
+//                pipelineState.vertexStrides[2] = 4;
+//            }
+//
+//            pipelineState.renderTargetFormat = RenderFormat::R16G16B16A16_FLOAT;
+//            pipelineState.depthStencilFormat = RenderFormat::D32_FLOAT;
+//            pipelineState.sampleCount = Config::AntiAliasing != EAntiAliasing::None ? int32_t(Config::AntiAliasing.Value) : 1;
+//
+//            if (pipelineState.vertexDeclaration->hasR11G11B10Normal)
+//                pipelineState.specConstants |= SPEC_CONSTANT_R11G11B10_NORMAL;
+//
+//            if (Config::GITextureFiltering == EGITextureFiltering::Bicubic)
+//                pipelineState.specConstants |= SPEC_CONSTANT_BICUBIC_GI_FILTER;
+//
+//            if (mesh.layer == MeshLayer::PunchThrough)
+//            {
+//                if (Config::AntiAliasing != EAntiAliasing::None && Config::TransparencyAntiAliasing)
+//                {
+//                    pipelineState.enableAlphaToCoverage = true;
+//                    pipelineState.specConstants |= SPEC_CONSTANT_ALPHA_TO_COVERAGE;
+//                }
+//                else
+//                {
+//                    pipelineState.specConstants |= SPEC_CONSTANT_ALPHA_TEST;
+//                }
+//            }
+//
+//            if (!isSky)
+//                pipelineState.specConstants |= SPEC_CONSTANT_REVERSE_Z;
+//
+//            auto createGraphicsPipeline = [&](PipelineState& pipelineStateToCreate)
+//                {
+//                    SanitizePipelineState(pipelineStateToCreate);
+//                    EnqueueGraphicsPipelineCompilation(pipelineStateToCreate, args.tokenPair, shaderList->m_TypeAndName.c_str() + 3);
+//
+//                    // Morph models have 4 targets where unused targets default to the first vertex stream.
+//                    if (mesh.morphModel)
+//                    {
+//                        for (size_t i = 0; i < 5; i++)
+//                        {
+//                            for (size_t j = 0; j < 4; j++)
+//                                pipelineStateToCreate.vertexStrides[j + 1] = i > j ? mesh.morphTargetVertexSize : mesh.vertexSize;
+//
+//                            SanitizePipelineState(pipelineStateToCreate);
+//                            EnqueueGraphicsPipelineCompilation(pipelineStateToCreate, args.tokenPair, shaderList->m_TypeAndName.c_str() + 3);
+//                        }
+//                    }
+//                };
+//
+//            createGraphicsPipeline(pipelineState);
+//
+//            // We cannot rely on this being accurate during loading as SceneEffect.prm.xml gets loaded a bit later.
+//            bool planarReflectionEnabled = *reinterpret_cast<bool*>(g_memory.Translate(0x832FA0D8));
+//            bool loading = *SWA::SGlobals::ms_IsLoading;
+//            bool compileNoMsaaPipeline = pipelineState.sampleCount != 1 && (loading || planarReflectionEnabled);
+//
+//            auto noMsaaPipeline = pipelineState;
+//            noMsaaPipeline.sampleCount = 1;
+//            noMsaaPipeline.enableAlphaToCoverage = false;
+//
+//            if ((noMsaaPipeline.specConstants & SPEC_CONSTANT_ALPHA_TO_COVERAGE) != 0)
+//            {
+//                noMsaaPipeline.specConstants &= ~SPEC_CONSTANT_ALPHA_TO_COVERAGE;
+//                noMsaaPipeline.specConstants |= SPEC_CONSTANT_ALPHA_TEST;
+//            }
+//
+//            if (compileNoMsaaPipeline)
+//            {
+//                // Planar reflections don't use MSAA.
+//                createGraphicsPipeline(noMsaaPipeline);
+//            }
+//
+//            if (args.objectIcon) 
+//            {
+//                // Object icons get rendered to a SDR buffer without MSAA.
+//                auto iconPipelineState = noMsaaPipeline;
+//                iconPipelineState.renderTargetFormat = RenderFormat::R8G8B8A8_UNORM;
+//                createGraphicsPipeline(iconPipelineState);
+//            }
+//
+//            if (isSonicMouth)
+//            {
+//                // Sonic's mouth switches between "SonicSkin_dspf[b]" or "SonicSkinNodeInvX_dspf[b]" depending on the view angle.
+//                auto mouthPipelineState = pipelineState;
+//                mouthPipelineState.vertexShader = FindShaderCacheEntry(0x689AA3140AB9EBAA)->guestShader;
+//                createGraphicsPipeline(mouthPipelineState);
+//
+//                if (compileNoMsaaPipeline)
+//                {
+//                    auto noMsaaMouthPipelineState = noMsaaPipeline;
+//                    noMsaaMouthPipelineState.vertexShader = mouthPipelineState.vertexShader;
+//                    createGraphicsPipeline(noMsaaMouthPipelineState);
+//                }
+//            }
+//        }
+//    }
+//}
 
-#pragma endregion
-static void* LockBuffer(GuestBuffer* buffer, uint32_t flags)
+//static void CompileMeshPipeline(Hedgehog::Mirage::CMeshData* mesh, MeshLayer layer, CompilationArgs& args)
+//{
+//    CompileMeshPipeline(Mesh
+//        {
+//            mesh->m_VertexSize,
+//            0,
+//            reinterpret_cast<GuestVertexDeclaration*>(mesh->m_VertexDeclarationPtr.m_pD3DVertexDeclaration.get()),
+//            mesh->m_spMaterial.get(),
+//            layer,
+//            false
+//        }, args);
+//}
+//
+//static void CompileMeshPipeline(Hedgehog::Mirage::CMorphModelData* morphModel, Hedgehog::Mirage::CMeshIndexData* mesh, MeshLayer layer, CompilationArgs& args)
+//{
+//    CompileMeshPipeline(Mesh
+//        {
+//            morphModel->m_VertexSize,
+//            morphModel->m_MorphTargetVertexSize,
+//            reinterpret_cast<GuestVertexDeclaration*>(morphModel->m_VertexDeclarationPtr.m_pD3DVertexDeclaration.get()),
+//            mesh->m_spMaterial.get(),
+//            layer,
+//            true
+//        }, args);
+//}
+//
+//template<typename T>
+//static void CompileMeshPipelines(const T& modelData, CompilationArgs& args)
+//{
+//    for (auto& meshGroup : modelData.m_NodeGroupModels)
+//    {
+//        for (auto& mesh : meshGroup->m_OpaqueMeshes)
+//        {
+//            CompileMeshPipeline(mesh.get(), MeshLayer::Opaque, args);
+//
+//            if (args.noGI) // For models that can be shown transparent (eg. medals)
+//                CompileMeshPipeline(mesh.get(), MeshLayer::Transparent, args);
+//        }
+//
+//        for (auto& mesh : meshGroup->m_TransparentMeshes)
+//            CompileMeshPipeline(mesh.get(), MeshLayer::Transparent, args);
+//
+//        for (auto& mesh : meshGroup->m_PunchThroughMeshes)
+//            CompileMeshPipeline(mesh.get(), MeshLayer::PunchThrough, args);
+//
+//        for (auto& specialMeshGroup : meshGroup->m_SpecialMeshGroups)
+//        {
+//            for (auto& mesh : specialMeshGroup)
+//                CompileMeshPipeline(mesh.get(), MeshLayer::Special, args); // TODO: Are there layer types other than water in this game??
+//        }
+//    }
+//
+//    for (auto& mesh : modelData.m_OpaqueMeshes)
+//    {
+//        CompileMeshPipeline(mesh.get(), MeshLayer::Opaque, args);
+//
+//        if (args.noGI)
+//            CompileMeshPipeline(mesh.get(), MeshLayer::Transparent, args);
+//    }
+//
+//    for (auto& mesh : modelData.m_TransparentMeshes)
+//        CompileMeshPipeline(mesh.get(), MeshLayer::Transparent, args);
+//
+//    for (auto& mesh : modelData.m_PunchThroughMeshes)
+//        CompileMeshPipeline(mesh.get(), MeshLayer::PunchThrough, args);
+//
+//    if constexpr (std::is_same_v<T, Hedgehog::Mirage::CModelData>)
+//    {
+//        for (auto& morphModel : modelData.m_MorphModels)
+//        {
+//            for (auto& mesh : morphModel->m_OpaqueMeshList)
+//                CompileMeshPipeline(morphModel.get(), mesh.get(), MeshLayer::Opaque, args);
+//
+//            for (auto& mesh : morphModel->m_TransparentMeshList)
+//                CompileMeshPipeline(morphModel.get(), mesh.get(), MeshLayer::Transparent, args);
+//
+//            for (auto& mesh : morphModel->m_PunchThroughMeshList)
+//                CompileMeshPipeline(morphModel.get(), mesh.get(), MeshLayer::PunchThrough, args);
+//        }
+//    }
+//}
+
+//static void CompileParticleMaterialPipeline(const Hedgehog::Sparkle::CParticleMaterial& material, PipelineTaskTokenPair& tokenPair)
+//{
+//    auto& shaderList = material.m_spShaderListData;
+//    if (shaderList.get() == nullptr)
+//        return;
+//
+//    guest_stack_var<Hedgehog::Base::CStringSymbol> defaultSymbol(reinterpret_cast<const char*>(g_memory.Translate(0x8202DDBC)));
+//    auto defaultFindResult = shaderList->m_PixelShaderPermutations.find(*defaultSymbol);
+//    if (defaultFindResult == shaderList->m_PixelShaderPermutations.end())
+//        return;
+//
+//    guest_stack_var<Hedgehog::Base::CStringSymbol> noneSymbol(reinterpret_cast<const char*>(g_memory.Translate(0x8200D938)));
+//    auto noneFindResult = defaultFindResult->second.m_VertexShaderPermutations.find(*noneSymbol);
+//    if (noneFindResult == defaultFindResult->second.m_VertexShaderPermutations.end())
+//        return;
+//
+//    // All the particle models in the game come with the unoptimized format, so we can assume it.
+//    uint8_t unoptimizedVertexElements[144] = 
+//    {
+//        0x00, 0x00, 0x00, 0x00, 0x00, 0x2A, 0x23, 0xB9, 0x00, 0x00, 0x00, 0x00,
+//        0x00, 0x00, 0x00, 0x0C, 0x00, 0x2A, 0x23, 0xB9, 0x00, 0x03, 0x00, 0x00,
+//        0x00, 0x00, 0x00, 0x18, 0x00, 0x2A, 0x23, 0xB9, 0x00, 0x06, 0x00, 0x00,
+//        0x00, 0x00, 0x00, 0x24, 0x00, 0x2A, 0x23, 0xB9, 0x00, 0x07, 0x00, 0x00,
+//        0x00, 0x00, 0x00, 0x30, 0x00, 0x2C, 0x23, 0xA5, 0x00, 0x05, 0x00, 0x00,
+//        0x00, 0x00, 0x00, 0x38, 0x00, 0x2C, 0x23, 0xA5, 0x00, 0x05, 0x01, 0x00,
+//        0x00, 0x00, 0x00, 0x40, 0x00, 0x2C, 0x23, 0xA5, 0x00, 0x05, 0x02, 0x00,
+//        0x00, 0x00, 0x00, 0x48, 0x00, 0x2C, 0x23, 0xA5, 0x00, 0x05, 0x03, 0x00,
+//        0x00, 0x00, 0x00, 0x50, 0x00, 0x1A, 0x23, 0xA6, 0x00, 0x0A, 0x00, 0x00,
+//        0x00, 0x00, 0x00, 0x60, 0x00, 0x1A, 0x23, 0x86, 0x00, 0x02, 0x00, 0x00,
+//        0x00, 0x00, 0x00, 0x64, 0x00, 0x1A, 0x20, 0x86, 0x00, 0x01, 0x00, 0x00,
+//        0x00, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00
+//    };
+//
+//    auto unoptimizedVertexDeclaration = CreateVertexDeclarationWithoutAddRef(reinterpret_cast<GuestVertexElement*>(unoptimizedVertexElements));
+//    auto sparkleVertexDeclaration = CreateVertexDeclarationWithoutAddRef(reinterpret_cast<GuestVertexElement*>(g_memory.Translate(0x8211F540)));
+//
+//    bool isMeshShader = strstr(shaderList->m_TypeAndName.c_str(), "Mesh") != nullptr;
+//
+//    PipelineState pipelineState{};
+//    pipelineState.vertexShader = reinterpret_cast<GuestShader*>(noneFindResult->second->m_VertexShaders.begin()->second->m_spCode->m_pD3DVertexShader.get());
+//    pipelineState.pixelShader = reinterpret_cast<GuestShader*>(defaultFindResult->second.m_PixelShaders.begin()->second->m_spCode->m_pD3DPixelShader.get());
+//    pipelineState.vertexDeclaration = isMeshShader ? unoptimizedVertexDeclaration : sparkleVertexDeclaration;
+//    pipelineState.zWriteEnable = false;
+//    pipelineState.zFunc = RenderComparisonFunction::GREATER_EQUAL;
+//    pipelineState.alphaBlendEnable = true;
+//    pipelineState.srcBlendAlpha = RenderBlend::SRC_ALPHA;
+//    pipelineState.destBlendAlpha = RenderBlend::INV_SRC_ALPHA;
+//    pipelineState.primitiveTopology = RenderPrimitiveTopology::TRIANGLE_STRIP;
+//    pipelineState.vertexStrides[0] = isMeshShader ? 104 : 28;
+//    pipelineState.depthStencilFormat = RenderFormat::D32_FLOAT;
+//    pipelineState.specConstants = SPEC_CONSTANT_REVERSE_Z;
+//
+//    if (pipelineState.vertexDeclaration->hasR11G11B10Normal)
+//        pipelineState.specConstants |= SPEC_CONSTANT_R11G11B10_NORMAL;
+//
+//    switch (material.m_BlendMode.get())
+//    {
+//    case Hedgehog::Sparkle::CParticleMaterial::eBlendMode_Zero:
+//        pipelineState.srcBlend = RenderBlend::ZERO;
+//        pipelineState.destBlend = RenderBlend::ZERO;
+//        break;
+//    case Hedgehog::Sparkle::CParticleMaterial::eBlendMode_Typical:
+//        pipelineState.srcBlend = RenderBlend::SRC_ALPHA;
+//        pipelineState.destBlend = RenderBlend::INV_SRC_ALPHA;
+//        break;
+//    case Hedgehog::Sparkle::CParticleMaterial::eBlendMode_Add:
+//        pipelineState.srcBlend = RenderBlend::SRC_ALPHA;
+//        pipelineState.destBlend = RenderBlend::ONE;
+//        break;
+//    default:
+//        pipelineState.srcBlend = RenderBlend::ONE;
+//        pipelineState.destBlend = RenderBlend::ONE;
+//        break;
+//    }
+//
+//    auto createGraphicsPipeline = [&](PipelineState& pipelineStateToCreate)
+//        {
+//            SanitizePipelineState(pipelineStateToCreate);
+//            EnqueueGraphicsPipelineCompilation(pipelineStateToCreate, tokenPair, shaderList->m_TypeAndName.c_str() + 3);
+//        };
+//
+//    // Mesh particles can use both cull modes. Quad particles are only NONE.
+//    RenderCullMode cullModes[] = { RenderCullMode::NONE, RenderCullMode::BACK };
+//    uint32_t cullModeCount = isMeshShader ? std::size(cullModes) : 1;
+//    RenderFormat renderTargetFormats[] = { RenderFormat::R16G16B16A16_FLOAT, RenderFormat::R8G8B8A8_UNORM };
+//
+//    for (size_t i = 0; i < cullModeCount; i++)
+//    {
+//        pipelineState.cullMode = cullModes[i];
+//
+//        for (auto renderTargetFormat : renderTargetFormats)
+//        {
+//            pipelineState.renderTargetFormat = renderTargetFormat;
+//
+//            if (renderTargetFormat == RenderFormat::R16G16B16A16_FLOAT)
+//                pipelineState.sampleCount = Config::AntiAliasing != EAntiAliasing::None ? int32_t(Config::AntiAliasing.Value) : 1;
+//            else
+//                pipelineState.sampleCount = 1;
+//
+//            createGraphicsPipeline(pipelineState);
+//
+//            // Always compile no MSAA variant for particles, as the planar
+//            // reflection variable isn't reliable at this time of compilation.
+//            bool compileNoMsaaPipeline = pipelineState.sampleCount != 1;
+//
+//            auto noMsaaPipelineState = pipelineState;
+//            noMsaaPipelineState.sampleCount = 1;
+//
+//            if (compileNoMsaaPipeline)
+//                createGraphicsPipeline(noMsaaPipelineState);
+//
+//            if (!isMeshShader)
+//            {
+//                // Previous compilation was for locus particles. This one will be for quads.
+//                auto quadPipelineState = pipelineState;
+//                quadPipelineState.primitiveTopology = RenderPrimitiveTopology::TRIANGLE_LIST;
+//                createGraphicsPipeline(quadPipelineState);
+//
+//                if (compileNoMsaaPipeline)
+//                {
+//                    auto noMsaaQuadPipelineState = noMsaaPipelineState;
+//                    noMsaaQuadPipelineState.primitiveTopology = RenderPrimitiveTopology::TRIANGLE_LIST;
+//                    createGraphicsPipeline(noMsaaQuadPipelineState);
+//                }
+//            }
+//        }
+//    }
+//}
+
+static std::thread::id g_mainThreadId = std::this_thread::get_id();
+
+static void PipelineTaskConsumerThread()
 {
-    buffer->lockedReadOnly = (flags & 0x10) != 0;
+#ifdef _WIN32
+    SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE);
+    GuestThread::SetThreadName(GetCurrentThreadId(), "Pipeline Task Consumer Thread");
+#endif
 
-    if (buffer->mappedMemory == nullptr)
-        buffer->mappedMemory = reblue::kernel::g_userHeap.AllocPhysical(buffer->dataSize, 0x10);
+    std::vector<PipelineTask> localPipelineTaskQueue;
+    std::unique_ptr<GuestThreadContext> ctx;
 
-    return buffer->mappedMemory;
+    while (true)
+    {
+        // Wait for tasks to arrive.
+        uint32_t pendingPipelineTaskCount;
+        while ((pendingPipelineTaskCount = g_pendingPipelineTaskCount.load()) == 0)
+            g_pendingPipelineTaskCount.wait(pendingPipelineTaskCount);
+
+        if (ctx == nullptr)
+            ctx = std::make_unique<GuestThreadContext>(0);
+
+        {
+            std::lock_guard lock(g_pipelineTaskMutex);
+            localPipelineTaskQueue.insert(localPipelineTaskQueue.end(), g_pipelineTaskQueue.begin(), g_pipelineTaskQueue.end());
+            g_pipelineTaskQueue.clear();
+        }
+
+        bool allHandled = true;
+
+        for (auto& [type /*, databaseData*/ ] : localPipelineTaskQueue)
+        {
+            switch (type)
+            {
+            //case PipelineTaskType::DatabaseData:
+            //{
+            //    bool ready = false;
+
+            //    if (databaseData->m_pVftable.ptr == MODEL_DATA_VFTABLE)
+            //        ready = CheckMadeAll(*reinterpret_cast<Hedgehog::Mirage::CModelData*>(databaseData.get()));
+            //    else
+            //        ready = databaseData->IsMadeOne();
+
+            //    if (ready || databaseData.unique())
+            //    {
+            //        if (databaseData->m_pVftable.ptr == TERRAIN_MODEL_DATA_VFTABLE)
+            //        {
+            //            CompilationArgs args{};
+            //            args.tokenPair.token.type = type;
+            //            args.tokenPair.token.databaseData = databaseData;
+            //            args.instancing = strncmp(databaseData->m_TypeAndName.c_str() + 3, "ins", 3) == 0;
+            //            CompileMeshPipelines(*reinterpret_cast<Hedgehog::Mirage::CTerrainModelData*>(databaseData.get()), args);
+            //        }
+            //        else if (databaseData->m_pVftable.ptr == PARTICLE_MATERIAL_VFTABLE)
+            //        {
+            //            PipelineTaskTokenPair tokenPair;
+            //            tokenPair.token.type = type;
+            //            tokenPair.token.databaseData = databaseData;
+            //            CompileParticleMaterialPipeline(*reinterpret_cast<Hedgehog::Sparkle::CParticleMaterial*>(databaseData.get()), tokenPair);
+            //        }
+            //        else
+            //        {
+            //            assert(databaseData->m_pVftable.ptr == MODEL_DATA_VFTABLE);
+
+            //            auto modelData = reinterpret_cast<Hedgehog::Mirage::CModelData*>(databaseData.get());
+
+            //            CompilationArgs args{};
+            //            args.tokenPair.token.type = type;
+            //            args.tokenPair.token.databaseData = databaseData;
+            //            args.noGI = true;
+            //            args.hasMoreThanOneBone = modelData->m_NodeNum > 1;
+            //            args.velocityMapQuickStep = strcmp(databaseData->m_TypeAndName.c_str() + 2, "SonicRoot") == 0;
+
+            //            // Check for the on screen items, eg. rings going to HUD.
+            //            auto items = reinterpret_cast<xpointer<const char>*>(g_memory.Translate(0x832A8DD0));
+            //            for (size_t i = 0; i < 50; i++)
+            //            {
+            //                if (strcmp(databaseData->m_TypeAndName.c_str() + 2, (*items).get()) == 0)
+            //                {
+            //                    args.objectIcon = true;
+            //                    break;
+            //                }
+            //                items += 7;
+            //            }
+
+            //            CompileMeshPipelines(*modelData, args);
+            //        }
+
+            //        type = PipelineTaskType::Null;
+            //        databaseData = nullptr;
+
+            //        --g_pendingPipelineTaskCount;
+            //    }
+            //    else
+            //    {
+            //        allHandled = false;
+            //    }
+
+            //    break;
+            //}
+
+            case PipelineTaskType::PrecompilePipelines:
+            {
+                // Deliberately leaving the type null to account for the enqueue
+                // call not incrementing the compiling pipeline task counter.
+                PipelineTaskTokenPair tokenPair;
+
+                for (auto vertexElements : g_vertexDeclarationCache)
+                    CreateVertexDeclarationWithoutAddRef(reinterpret_cast<GuestVertexElement*>(vertexElements));
+
+                for (auto pipelineState : g_pipelineStateCache)
+                {
+                    // The hashes were reinterpret casted to pointers in the cache.
+                    pipelineState.vertexShader = FindShaderCacheEntry(reinterpret_cast<XXH64_hash_t>(pipelineState.vertexShader))->guestShader;
+
+                    if (pipelineState.pixelShader != nullptr)
+                        pipelineState.pixelShader = FindShaderCacheEntry(reinterpret_cast<XXH64_hash_t>(pipelineState.pixelShader))->guestShader;
+
+                    {
+                        std::lock_guard lock(g_vertexDeclarationMutex);
+                        pipelineState.vertexDeclaration = g_vertexDeclarations[reinterpret_cast<XXH64_hash_t>(pipelineState.vertexDeclaration)];
+                    }
+
+                    if (!g_capabilities.triangleFan && pipelineState.primitiveTopology == RenderPrimitiveTopology::TRIANGLE_FAN)
+                        pipelineState.primitiveTopology = RenderPrimitiveTopology::TRIANGLE_LIST;
+
+                    // Zero out depth bias for Vulkan, we only store common values for D3D12.
+                    if (g_capabilities.dynamicDepthBias && g_vulkan)
+                    {
+                        pipelineState.depthBias = 0;
+                        pipelineState.slopeScaledDepthBias = 0.0f;
+                    }
+
+                    if (Config::GITextureFiltering == EGITextureFiltering::Bicubic)
+                        pipelineState.specConstants |= SPEC_CONSTANT_BICUBIC_GI_FILTER;
+
+                    auto createGraphicsPipeline = [&](PipelineState& pipelineStateToCreate, const char* name)
+                        {
+                            SanitizePipelineState(pipelineStateToCreate);
+                            EnqueueGraphicsPipelineCompilation(pipelineStateToCreate, tokenPair, name, true);
+                        };
+
+                    // Compile both MSAA and non MSAA variants to work with reflection maps. The render formats are an assumption but it should hold true.
+                    if (Config::AntiAliasing != EAntiAliasing::None &&
+                        pipelineState.renderTargetFormat == RenderFormat::R16G16B16A16_FLOAT && 
+                        pipelineState.depthStencilFormat == RenderFormat::D32_FLOAT)
+                    {
+                        auto msaaPipelineState = pipelineState;
+                        msaaPipelineState.sampleCount = int32_t(Config::AntiAliasing.Value);
+
+                        if (Config::TransparencyAntiAliasing && (msaaPipelineState.specConstants & SPEC_CONSTANT_ALPHA_TEST) != 0)
+                        {
+                            msaaPipelineState.enableAlphaToCoverage = true;
+                            msaaPipelineState.specConstants &= ~SPEC_CONSTANT_ALPHA_TEST;
+                            msaaPipelineState.specConstants |= SPEC_CONSTANT_ALPHA_TO_COVERAGE;
+                        }
+
+                        createGraphicsPipeline(msaaPipelineState, "Precompiled Pipeline MSAA");
+                    }
+
+                    if (pipelineState.pixelShader != nullptr &&
+                        pipelineState.pixelShader->shaderCacheEntry != nullptr)
+                    {
+                        XXH64_hash_t hash = pipelineState.pixelShader->shaderCacheEntry->hash;
+
+                        // Compile the custom gaussian blur shaders that we pass to the game.
+                        if (hash == 0x4294510C775F4EE8)
+                        {
+                            for (auto& shader : g_gaussianBlurShaders)
+                            {
+                                auto newPipelineState = pipelineState;
+                                newPipelineState.pixelShader = shader.get();
+                                createGraphicsPipeline(newPipelineState, "Precompiled Gaussian Blur Pipeline");
+                            }
+                        }
+                        // Compile enhanced motion blur shader.
+                        else if (hash == 0x6B9732B4CD7E7740)
+                        {
+                            auto newPipelineState = pipelineState;
+                            newPipelineState.pixelShader = g_enhancedMotionBlurShader.get();
+                            createGraphicsPipeline(newPipelineState, "Precompiled Enhanced Motion Blur Pipeline");
+                        }
+                    }
+
+                    createGraphicsPipeline(pipelineState, "Precompiled Pipeline");
+
+                    // Compile the CSD filter shader that we pass to the game when point filtering is used.
+                    if (pipelineState.pixelShader == g_csdShader)
+                    {
+                        pipelineState.pixelShader = g_csdFilterShader.get();
+                        createGraphicsPipeline(pipelineState, "Precompiled CSD Filter Pipeline");
+                    }
+                }
+
+                type = PipelineTaskType::Null;
+                --g_pendingPipelineTaskCount;
+
+                break;
+            }
+
+            case PipelineTaskType::RecompilePipelines:
+            {
+                PipelineTaskTokenPair tokenPair;
+                tokenPair.token.type = type;
+
+                auto asyncPipelines = g_asyncPipelineStates.values();
+
+                for (auto& [hash, pipelineState] : asyncPipelines)
+                {
+                    bool alphaTest = (pipelineState.specConstants & (SPEC_CONSTANT_ALPHA_TEST | SPEC_CONSTANT_ALPHA_TO_COVERAGE)) != 0;
+                    bool msaa = pipelineState.sampleCount != 1 || (pipelineState.renderTargetFormat == RenderFormat::R16G16B16A16_FLOAT && pipelineState.depthStencilFormat == RenderFormat::D32_FLOAT);
+
+                    pipelineState.sampleCount = 1;
+                    pipelineState.enableAlphaToCoverage = false;
+                    pipelineState.specConstants &= ~(SPEC_CONSTANT_BICUBIC_GI_FILTER | SPEC_CONSTANT_ALPHA_TEST | SPEC_CONSTANT_ALPHA_TO_COVERAGE);
+
+                    if (msaa && Config::AntiAliasing != EAntiAliasing::None)
+                    {
+                        pipelineState.sampleCount = int32_t(Config::AntiAliasing.Value);
+
+                        if (alphaTest)
+                        {
+                            if (Config::TransparencyAntiAliasing)
+                            {
+                                pipelineState.enableAlphaToCoverage = true;
+                                pipelineState.specConstants |= SPEC_CONSTANT_ALPHA_TO_COVERAGE;
+                            }
+                            else
+                            {
+                                pipelineState.specConstants |= SPEC_CONSTANT_ALPHA_TEST;
+                            }
+                        }
+                    }
+                    else if (alphaTest)
+                    {
+                        pipelineState.specConstants |= SPEC_CONSTANT_ALPHA_TEST;
+                    }
+
+                    if (Config::GITextureFiltering == EGITextureFiltering::Bicubic)
+                        pipelineState.specConstants |= SPEC_CONSTANT_BICUBIC_GI_FILTER;
+
+                    SanitizePipelineState(pipelineState);
+                    EnqueueGraphicsPipelineCompilation(pipelineState, tokenPair, "Recompiled Pipeline State");
+                }
+
+                type = PipelineTaskType::Null;
+                --g_pendingPipelineTaskCount;
+
+                break;
+            }
+            }
+        }
+
+        if (allHandled)
+            localPipelineTaskQueue.clear();
+
+        std::this_thread::yield();
+    }
 }
+
+static std::thread g_pipelineTaskConsumerThread(PipelineTaskConsumerThread);
+
+#ifdef PSO_CACHING
+class SDLEventListenerForPSOCaching : public SDLEventListener
+{
+public:
+    bool OnSDLEvent(SDL_Event* event) override
+    {
+        if (event->type != SDL_QUIT)
+            return false;
+
+        std::lock_guard lock(g_pipelineCacheMutex);
+        if (g_pipelineStatesToCache.empty())
+            return false;
+
+        FILE* f = fopen("send_this_file_to_skyth.txt", "ab");
+        if (f != nullptr)
+        {
+            ankerl::unordered_dense::set<GuestVertexDeclaration*> vertexDeclarations;
+            xxHashMap<PipelineState> pipelineStatesToCache;
+
+            for (auto& [hash, pipelineState] : g_pipelineStatesToCache)
+            {
+                if (pipelineState.vertexShader->shaderCacheEntry == nullptr ||
+                    (pipelineState.pixelShader != nullptr && pipelineState.pixelShader->shaderCacheEntry == nullptr))
+                {
+                    continue;
+                }
+
+                vertexDeclarations.emplace(pipelineState.vertexDeclaration);
+
+                // Mask out the config options.
+                pipelineState.sampleCount = 1;
+                pipelineState.enableAlphaToCoverage = false;
+
+                pipelineState.specConstants &= ~SPEC_CONSTANT_BICUBIC_GI_FILTER;
+                if ((pipelineState.specConstants & SPEC_CONSTANT_ALPHA_TO_COVERAGE) != 0)
+                {
+                    pipelineState.specConstants &= ~SPEC_CONSTANT_ALPHA_TO_COVERAGE;
+                    pipelineState.specConstants |= SPEC_CONSTANT_ALPHA_TEST;
+                }
+
+                pipelineStatesToCache.emplace(XXH3_64bits(&pipelineState, sizeof(pipelineState)), pipelineState);
+            }
+
+            for (auto vertexDeclaration : vertexDeclarations)
+            {
+                fmt::print(f, "static uint8_t g_vertexElements_{:016X}[] = {{", vertexDeclaration->hash);
+
+                auto bytes = reinterpret_cast<uint8_t*>(vertexDeclaration->vertexElements.get());
+                for (size_t i = 0; i < vertexDeclaration->vertexElementCount * sizeof(GuestVertexElement); i++)
+                    fmt::print(f, "0x{:X},", bytes[i]);
+
+                fmt::println(f, "}};");
+            }
+
+            for (auto& [pipelineHash, pipelineState] : pipelineStatesToCache)
+            {
+                fmt::println(f, "{{ "
+                    "reinterpret_cast<GuestShader*>(0x{:X}),"
+                    "reinterpret_cast<GuestShader*>(0x{:X}),"
+                    "reinterpret_cast<GuestVertexDeclaration*>(0x{:X}),"
+                    "{},"
+                    "{},"
+                    "{},"
+                    "RenderBlend::{},"
+                    "RenderBlend::{},"
+                    "RenderCullMode::{},"
+                    "RenderComparisonFunction::{},"
+                    "{},"
+                    "RenderBlendOperation::{},"
+                    "{},"
+                    "{},"
+                    "RenderBlend::{},"
+                    "RenderBlend::{},"
+                    "RenderBlendOperation::{},"
+                    "0x{:X},"
+                    "RenderPrimitiveTopology::{},"
+                    "{{ {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{} }},"
+                    "RenderFormat::{},"
+                    "RenderFormat::{},"
+                    "{},"
+                    "{},"
+                    "0x{:X} }},",
+                    pipelineState.vertexShader->shaderCacheEntry->hash,
+                    pipelineState.pixelShader != nullptr ? pipelineState.pixelShader->shaderCacheEntry->hash : 0,
+                    pipelineState.vertexDeclaration->hash,
+                    pipelineState.instancing,
+                    pipelineState.zEnable,
+                    pipelineState.zWriteEnable,
+                    magic_enum::enum_name(pipelineState.srcBlend),
+                    magic_enum::enum_name(pipelineState.destBlend),
+                    magic_enum::enum_name(pipelineState.cullMode),
+                    magic_enum::enum_name(pipelineState.zFunc),
+                    pipelineState.alphaBlendEnable,
+                    magic_enum::enum_name(pipelineState.blendOp),
+                    pipelineState.slopeScaledDepthBias,
+                    pipelineState.depthBias,
+                    magic_enum::enum_name(pipelineState.srcBlendAlpha),
+                    magic_enum::enum_name(pipelineState.destBlendAlpha),
+                    magic_enum::enum_name(pipelineState.blendOpAlpha),
+                    pipelineState.colorWriteEnable,
+                    magic_enum::enum_name(pipelineState.primitiveTopology),
+                    pipelineState.vertexStrides[0],
+                    pipelineState.vertexStrides[1],
+                    pipelineState.vertexStrides[2],
+                    pipelineState.vertexStrides[3],
+                    pipelineState.vertexStrides[4],
+                    pipelineState.vertexStrides[5],
+                    pipelineState.vertexStrides[6],
+                    pipelineState.vertexStrides[7],
+                    pipelineState.vertexStrides[8],
+                    pipelineState.vertexStrides[9],
+                    pipelineState.vertexStrides[10],
+                    pipelineState.vertexStrides[11],
+                    pipelineState.vertexStrides[12],
+                    pipelineState.vertexStrides[13],
+                    pipelineState.vertexStrides[14],
+                    pipelineState.vertexStrides[15],
+                    magic_enum::enum_name(pipelineState.renderTargetFormat),
+                    magic_enum::enum_name(pipelineState.depthStencilFormat),
+                    pipelineState.sampleCount,
+                    pipelineState.enableAlphaToCoverage,
+                    pipelineState.specConstants);
+            }
+
+            fclose(f);
+        }
+
+        return false;
+    }
+};
+SDLEventListenerForPSOCaching g_sdlEventListenerForPSOCaching;
+#endif
 
 uint32_t reblue::gpu::CreateDevice(uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, be<uint32_t>* a6)
 {
