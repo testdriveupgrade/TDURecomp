@@ -275,10 +275,10 @@ GUEST_FUNCTION_HOOK(sub_8246B710, reblue::gpu::CreateDevice);
 //GUEST_FUNCTION_HOOK(sub_82BDA8C0, Video::Present);
 //GUEST_FUNCTION_HOOK(sub_82BDD330, reblue::gpu::GetBackBuffer);
 //
-//GUEST_FUNCTION_HOOK(sub_82BE9498, reblue::gpu::CreateTexture);
-//GUEST_FUNCTION_HOOK(sub_82BE6AD0, reblue::gpu::CreateVertexBuffer);
-//GUEST_FUNCTION_HOOK(sub_82BE6BF8, reblue::gpu::CreateIndexBuffer);
-//GUEST_FUNCTION_HOOK(sub_82BE95B8, reblue::gpu::CreateSurface);
+GUEST_FUNCTION_HOOK(sub_8246D420, reblue::gpu::CreateTexture);
+GUEST_FUNCTION_HOOK(sub_824811D8, reblue::gpu::CreateVertexBuffer);
+GUEST_FUNCTION_HOOK(sub_82481310, reblue::gpu::CreateIndexBuffer);
+GUEST_FUNCTION_HOOK(sub_8246D540, reblue::gpu::CreateSurface);
 //
 //GUEST_FUNCTION_HOOK(sub_82BF6400, reblue::gpu::StretchRect);
 //
@@ -292,8 +292,8 @@ GUEST_FUNCTION_HOOK(sub_8246B710, reblue::gpu::CreateDevice);
 //GUEST_FUNCTION_HOOK(sub_82BE9818, reblue::gpu::SetTexture);
 //GUEST_FUNCTION_HOOK(sub_82BDCFB0, reblue::gpu::SetScissorRect);
 //
-//GUEST_FUNCTION_HOOK(sub_82BE5900, reblue::gpu::DrawPrimitive);
-//GUEST_FUNCTION_HOOK(sub_82BE5CF0, reblue::gpu::DrawIndexedPrimitive);
+GUEST_FUNCTION_HOOK(sub_8248FC28, reblue::gpu::DrawPrimitive);
+GUEST_FUNCTION_HOOK(sub_82BE5CF0, reblue::gpu::DrawIndexedPrimitive);
 //GUEST_FUNCTION_HOOK(sub_82BE52F8, reblue::gpu::DrawPrimitiveUP);
 
 //GUEST_FUNCTION_HOOK(sub_82BE0428, reblue::gpu::CreateVertexDeclaration);
