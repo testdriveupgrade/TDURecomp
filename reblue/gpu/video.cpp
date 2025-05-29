@@ -14,7 +14,7 @@
 #include <kernel/xdbf.h>
 #include <res/bc_diff/button_bc_diff.bin.h>
 #include <res/font/im_font_atlas.dds.h>
-// #include <shader/shader_cache.h>
+#include <shader/shader_cache.h>
 
 #include <ui/imgui_utils.h>
 #include <ui/game_window.h>
@@ -3526,7 +3526,7 @@ static RenderShader* GetOrLinkShader(GuestShader* guestShader, uint32_t specCons
 #ifdef UNLEASHED_RECOMP_D3D12
     if (shader == nullptr)
     {
-        static Mutex g_compiledSpecConstantLibraryBlobMutex;
+        static reblue::kernel::Mutex g_compiledSpecConstantLibraryBlobMutex;
         static ankerl::unordered_dense::map<uint32_t, ComPtr<IDxcBlob>> g_compiledSpecConstantLibraryBlobs;
 
         thread_local ComPtr<IDxcCompiler3> s_dxcCompiler;
@@ -4429,7 +4429,7 @@ static GuestVertexDeclaration* CreateVertexDeclarationWithoutAddRef(GuestVertexE
 
     if (vertexDeclaration == nullptr)
     {
-        vertexDeclaration = g_userHeap.AllocPhysical<GuestVertexDeclaration>(ResourceType::VertexDeclaration);
+        vertexDeclaration = reblue::kernel::g_userHeap.AllocPhysical<GuestVertexDeclaration>(ResourceType::VertexDeclaration);
         vertexDeclaration->hash = hash;
 
         static std::vector<RenderInputElement> inputElements;
@@ -4612,16 +4612,16 @@ static void ProcSetVertexDeclaration(const RenderCommand& cmd)
     SetDirtyValue(g_dirtyStates.pipelineState, g_pipelineState.vertexDeclaration, args.vertexDeclaration);
 }
 
-//static ShaderCacheEntry* FindShaderCacheEntry(XXH64_hash_t hash)
-//{
-//    auto end = g_shaderCacheEntries + g_shaderCacheEntryCount;
-//    auto findResult = std::lower_bound(g_shaderCacheEntries, end, hash, [](ShaderCacheEntry& lhs, XXH64_hash_t rhs)
-//        {
-//            return lhs.hash < rhs;
-//        });
-//
-//    return findResult != end && findResult->hash == hash ? findResult : nullptr;
-//}
+static ShaderCacheEntry* FindShaderCacheEntry(XXH64_hash_t hash)
+{
+    auto end = g_shaderCacheEntries + g_shaderCacheEntryCount;
+    auto findResult = std::lower_bound(g_shaderCacheEntries, end, hash, [](ShaderCacheEntry& lhs, XXH64_hash_t rhs)
+        {
+            return lhs.hash < rhs;
+        });
+
+    return findResult != end && findResult->hash == hash ? findResult : nullptr;
+}
 
 static GuestShader* CreateShader(const be<uint32_t>* function, ResourceType resourceType)
 {
@@ -4634,7 +4634,7 @@ static GuestShader* CreateShader(const be<uint32_t>* function, ResourceType reso
     {
         if (findResult->guestShader == nullptr)
         {
-            shader = g_userHeap.AllocPhysical<GuestShader>(resourceType);
+            shader = reblue::kernel::g_userHeap.AllocPhysical<GuestShader>(resourceType);
 
             if (hash == 0x85ED723035ECF535)
                 shader->shader = CREATE_SHADER(blend_color_alpha_ps);
@@ -4654,7 +4654,7 @@ static GuestShader* CreateShader(const be<uint32_t>* function, ResourceType reso
     }
 
     if (shader == nullptr)
-        shader = g_userHeap.AllocPhysical<GuestShader>(resourceType);
+        shader = reblue::kernel::g_userHeap.AllocPhysical<GuestShader>(resourceType);
     else
         shader->AddRef();
 
@@ -4727,20 +4727,20 @@ static void ProcSetPixelShader(const RenderCommand& cmd)
 
             default:
             {
-                if (g_aspectRatio >= WIDE_ASPECT_RATIO)
-                {
-                    size_t height = round(Video::s_viewportHeight * Config::ResolutionScale);
+                //if (g_aspectRatio >= WIDE_ASPECT_RATIO)
+                //{
+                //    size_t height = round(Video::s_viewportHeight * Config::ResolutionScale);
 
-                    if (height > 1440)
-                        shaderIndex = GAUSSIAN_BLUR_9X9;
-                    else if (height > 1080)
-                        shaderIndex = GAUSSIAN_BLUR_7X7;
-                    else if (height > 720)
-                        shaderIndex = GAUSSIAN_BLUR_5X5;
-                    else
-                        shaderIndex = GAUSSIAN_BLUR_3X3;
-                }
-                else
+                //    if (height > 1440)
+                //        shaderIndex = GAUSSIAN_BLUR_9X9;
+                //    else if (height > 1080)
+                //        shaderIndex = GAUSSIAN_BLUR_7X7;
+                //    else if (height > 720)
+                //        shaderIndex = GAUSSIAN_BLUR_5X5;
+                //    else
+                //        shaderIndex = GAUSSIAN_BLUR_3X3;
+                //}
+                //else
                 {
                     // Narrow aspect ratios should check for width to account for VERT+.
                     size_t width = round(Video::s_viewportWidth * Config::ResolutionScale);
@@ -5672,26 +5672,6 @@ void reblue::gpu::SetViewport(GuestDevice* device, GuestViewport* viewport)
     device->viewport.maxZ = viewport->maxZ;
 }
 
-void reblue::gpu::SetViewport(GuestDevice* device, GuestViewport* viewport)
-{
-    RenderCommand cmd;
-    cmd.type = RenderCommandType::SetViewport;
-    cmd.setViewport.x = viewport->x;
-    cmd.setViewport.y = viewport->y;
-    cmd.setViewport.width = viewport->width;
-    cmd.setViewport.height = viewport->height;
-    cmd.setViewport.minDepth = viewport->minZ;
-    cmd.setViewport.maxDepth = viewport->maxZ;
-    g_renderQueue.enqueue(cmd);
-
-    device->viewport.x = float(viewport->x);
-    device->viewport.y = float(viewport->y);
-    device->viewport.width = float(viewport->width);
-    device->viewport.height = float(viewport->height);
-    device->viewport.minZ = viewport->minZ;
-    device->viewport.maxZ = viewport->maxZ;
-}
-
 void reblue::gpu::SetTexture(GuestDevice* device, uint32_t index, GuestTexture* texture)
 {
     auto isPlayStation = Config::ControllerIcons == EControllerIcons::PlayStation;
@@ -5973,7 +5953,7 @@ void reblue::gpu::MakePictureData(GuestPictureData* pictureData, uint8_t* data, 
 
             DiffPatchTexture(texture, data, dataSize, hash);
 
-            pictureData->texture = g_memory.MapVirtual(reblue::kernel::g_userHeap.AllocPhysical<GuestTexture>(std::move(texture)));
+            pictureData->texture = reblue::kernel::g_memory.MapVirtual(reblue::kernel::g_userHeap.AllocPhysical<GuestTexture>(std::move(texture)));
             pictureData->type = 0;
         }
     }

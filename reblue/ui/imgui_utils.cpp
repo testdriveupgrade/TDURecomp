@@ -1,5 +1,4 @@
 #include "imgui_utils.h"
-#include <patches/aspect_ratio_patches.h>
 #include <app.h>
 #include <decompressor.h>
 #include <version.h>
@@ -11,6 +10,10 @@
 std::unique_ptr<GuestTexture> g_texGeneralWindow;
 std::unique_ptr<GuestTexture> g_texLight;
 std::unique_ptr<GuestTexture> g_texSelect;
+
+inline constexpr float NARROW_ASPECT_RATIO = 4.0f / 3.0f;
+inline constexpr float WIDE_ASPECT_RATIO = 16.0f / 9.0f;
+inline constexpr float STEAM_DECK_ASPECT_RATIO = 16.0f / 10.0f;
 
 void InitImGuiUtils()
 {
@@ -157,7 +160,7 @@ void ResetAdditive()
 
 float Scale(float size)
 {
-    return size * g_aspectRatioScale;
+    return size * WIDE_ASPECT_RATIO;
 }
 
 double ComputeLinearMotion(double duration, double offset, double total)
