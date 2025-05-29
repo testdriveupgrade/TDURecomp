@@ -7,6 +7,9 @@ endif()
 include($ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 set(REBLUE_THIRDPARTY_ROOT ${CMAKE_SOURCE_DIR}/thirdparty)
 set(REBLUE_TOOLS_ROOT ${CMAKE_SOURCE_DIR}/tools)
+set(QUICKBMS_EXECUTABLE "${REBLUE_TOOLS_ROOT}/quickbms/quickbms.exe") 
+set(QUICKBMS_URL "https://aluigi.altervista.org/papers/quickbms.zip")
+
 set(CMAKE_CXX_STANDARD 20)
 set(BUILD_SHARED_LIBS OFF)
 
