@@ -31,19 +31,13 @@ void GlobalMemoryStatusImpl(XLPMEMORYSTATUS lpMemoryStatus)
     lpMemoryStatus->dwAvailVirtual = 0x20000000;
 }
 
-//GUEST_FUNCTION_HOOK(sub_831B0ED0, memcpy);
-//GUEST_FUNCTION_HOOK(sub_831CCB98, memcpy);
-//GUEST_FUNCTION_HOOK(sub_831CEAE0, memcpy);
-//GUEST_FUNCTION_HOOK(sub_831CEE04, memcpy);
-//GUEST_FUNCTION_HOOK(sub_831CF2D0, memcpy);
-//GUEST_FUNCTION_HOOK(sub_831CF660, memcpy);
-//GUEST_FUNCTION_HOOK(sub_831B1358, memcpy);
-//GUEST_FUNCTION_HOOK(sub_831B5E00, memmove);
-//GUEST_FUNCTION_HOOK(sub_831B0BA0, memset);
-//GUEST_FUNCTION_HOOK(sub_831CCAA0, memset);
-//
 //#ifdef _WIN32
 GUEST_FUNCTION_HOOK(sub_8248D058, OutputDebugStringA);
+//void guest_output_debug_string(const char* fmt)  
+//{  
+//   LOG_UTILITY(fmt);  
+//}
+//GUEST_FUNCTION_HOOK(sub_820D1998);
 //#else
 //GUEST_FUNCTION_STUB(sub_82BD4CA8);
 //#endif

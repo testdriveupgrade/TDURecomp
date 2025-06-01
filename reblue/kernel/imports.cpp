@@ -4,6 +4,7 @@
 #include <kernel/xam.h>
 #include <apu/audio.h>
 #include <gpu/video.h>
+#include <os/logger.h>
 
 GUEST_FUNCTION_HOOK(__imp__XGetVideoMode, reblue::kernel::VdQueryVideoMode); // XGetVideoMode
 GUEST_FUNCTION_HOOK(__imp__XNotifyGetNext, reblue::kernel::XNotifyGetNext);
@@ -239,6 +240,8 @@ GUEST_FUNCTION_HOOK(sub_826C0480, memmove);
 GUEST_FUNCTION_HOOK(sub_826BF770, memcpy);
 GUEST_FUNCTION_HOOK(sub_826BFCF0, memset);
 
+
+
 // stubs
 GUEST_FUNCTION_STUB(sub_82468EF0); // HeapCreate
 GUEST_FUNCTION_STUB(sub_82BD9250); // HeapDestroy
@@ -253,69 +256,100 @@ GUEST_FUNCTION_STUB(__imp__swprintf);
 
 
 // gpu
-GUEST_FUNCTION_HOOK(sub_8246B710, reblue::gpu::CreateDevice);
+#define GUEST__Direct3D_CreateDevice sub_8246B710
+#define GUEST__D3DDevice_SetRenderTarget sub_82473D78
+#define GUEST__D3DDevice_CreateSurface sub_8246D540
+#define GUEST__D3DDevice_SetDepthStencilSurface sub_824740A8
+#define GUEST__D3DSurface_GetDesc sub_8246D668
+#define GUEST__D3DDevice_CreateTexture sub_8246D420
+#define GUEST__D3DDevice_SetTexture sub_8246D788
+#define GUEST__LockTextureRect sub_8246D408
+#define GUEST__D3DDevice_CreatePixelShader sub_8247D840
+#define GUEST__D3DDevice_SetPixelShader sub_8247BF68
+#define GUEST__D3DDevice_CreateIndexBuffer sub_82481310
+#define GUEST__D3DIndexBuffer_Lock sub_824813C0
+#define GUEST__D3DIndexBuffer_Unlock sub_82481420
+#define GUEST__D3DDevice_CreateVertexShader sub_8247D938
+#define GUEST__D3DDevice_CreateVertexBuffer sub_824811D8
+#define GUEST__D3DVertexBuffer_Lock sub_824812A0
+#define GUEST__D3DVertexBuffer_Unlock sub_82481300
+#define GUEST__D3DDevice_SetVertexShader sub_8247C228
+#define GUEST__UnlockTextureRect sub_8246B870
+#define GUEST__D3D_DestroyResource sub_82480B68
+#define GUEST__D3DXFillTexture
+#define GUEST__D3DXFillVolumeTexture
+#define GUEST__D3DDevice_SetStreamSource sub_82473838
+#define GUEST__D3DDevice_SetScissorRect sub_82473548
+#define GUEST__D3DDevice_DrawIndexedVertices sub_82490030
+#define GUEST__D3DDevice_DrawVertices sub_8248FC28
+#define GUEST__D3DDevice_SetVertexDeclaration sub_8247C3F8
+#define GUEST__D3DDevice_SetIndices sub_82473960
+#define GUEST__D3DDevice_Resolve sub_82478FE8
+#define GUEST__D3DDevice_Clear sub_82489F40
+#define GUEST__D3DDevice_SetViewport sub_8215D508
+#define GUEST__D3DIndexBuffer_GetDesc
+#define GUEST__D3DVertexBuffer_GetDesc
+#define GUEST__D3DXFilterTexture sub_82495F10
+#define GUEST__D3DDevice_Present
+#define GUEST__D3DDevice_SetResolution sub_824E39C8
+#define GUEST__D3DDevice_DrawVerticesUP
+#define GUEST__D3DDevice_AcquireThreadOwnership sub_8246B5A8
+#define GUEST__D3DDevice_ReleaseThreadOwnership sub_8246B5E8
+#define GUEST__D3DDevice_Release sub_8246B4E0
+#define GUEST__XGGetTextureDesc sub_82576868
+#define GUEST__D3DDevice_SetPrediction sub_8248A000
+#define GUEST__D3DDevice_SetShaderGPRAllocation sub_8247C4F8
 
-//GUEST_FUNCTION_HOOK(sub_82BE6230, reblue::gpu::DestructResource);
-//GUEST_FUNCTION_HOOK(sub_82BE9300, reblue::gpu::LockTextureRect);
-//GUEST_FUNCTION_HOOK(sub_82BE7780, reblue::gpu::UnlockTextureRect);
+GUEST_FUNCTION_HOOK(GUEST__Direct3D_CreateDevice, reblue::gpu::CreateDevice);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetRenderTarget, reblue::gpu::SetRenderTarget);
+GUEST_FUNCTION_HOOK(GUEST__D3D_DestroyResource, reblue::gpu::DestructResource);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetStreamSource, reblue::gpu::SetStreamSource);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetViewport, reblue::gpu::SetViewport);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_Clear, reblue::gpu::Clear);
+//GUEST_FUNCTION_HOOK(GUEST__D3DDevice_Present, Video::Present);
+//GUEST_FUNCTION_HOOK(, reblue::gpu::GetBackBuffer);
+//GUEST_FUNCTION_HOOK(, reblue::gpu::MakePictureData);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetResolution, reblue::gpu::SetResolution);
+//GUEST_FUNCTION_HOOK(, reblue::gpu::ScreenShaderInit);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_CreateSurface, reblue::gpu::CreateSurface);
+GUEST_FUNCTION_HOOK(GUEST__D3DSurface_GetDesc, reblue::gpu::GetSurfaceDesc);
 
-//GUEST_FUNCTION_HOOK(sub_82BE6B98, reblue::gpu::LockVertexBuffer);
-//GUEST_FUNCTION_HOOK(sub_82BE6BE8, reblue::gpu::UnlockVertexBuffer);
-//GUEST_FUNCTION_HOOK(sub_82BE61D0, reblue::gpu::GetVertexBufferDesc);
-//
-//GUEST_FUNCTION_HOOK(sub_82BE6CA8, reblue::gpu::LockIndexBuffer);
-//GUEST_FUNCTION_HOOK(sub_82BE6CF0, reblue::gpu::UnlockIndexBuffer);
-//GUEST_FUNCTION_HOOK(sub_82BE6200, reblue::gpu::GetIndexBufferDesc);
-//
-//GUEST_FUNCTION_HOOK(sub_82BE96F0, reblue::gpu::GetSurfaceDesc);
-//
-//GUEST_FUNCTION_HOOK(sub_82BE04B0, reblue::gpu::GetVertexDeclaration);
-//GUEST_FUNCTION_HOOK(sub_82BE0530, reblue::gpu::HashVertexDeclaration);
-//
-//GUEST_FUNCTION_HOOK(sub_82BDA8C0, Video::Present);
-//GUEST_FUNCTION_HOOK(sub_82BDD330, reblue::gpu::GetBackBuffer);
-//
-GUEST_FUNCTION_HOOK(sub_8246D420, reblue::gpu::CreateTexture);
-GUEST_FUNCTION_HOOK(sub_824811D8, reblue::gpu::CreateVertexBuffer);
-GUEST_FUNCTION_HOOK(sub_82481310, reblue::gpu::CreateIndexBuffer);
-GUEST_FUNCTION_HOOK(sub_8246D540, reblue::gpu::CreateSurface);
-//
-//GUEST_FUNCTION_HOOK(sub_82BF6400, reblue::gpu::StretchRect);
-//
-//GUEST_FUNCTION_HOOK(sub_82BDD9F0, reblue::gpu::SetRenderTarget);
-//GUEST_FUNCTION_HOOK(sub_82BDDD38, reblue::gpu::SetDepthStencilSurface);
-//
-//GUEST_FUNCTION_HOOK(sub_82BFE4C8, reblue::gpu::Clear);
-//
-//GUEST_FUNCTION_HOOK(sub_82BDD8C0, reblue::gpu::SetViewport);
-//
-//GUEST_FUNCTION_HOOK(sub_82BE9818, reblue::gpu::SetTexture);
-//GUEST_FUNCTION_HOOK(sub_82BDCFB0, reblue::gpu::SetScissorRect);
-//
-GUEST_FUNCTION_HOOK(sub_8248FC28, reblue::gpu::DrawPrimitive);
-GUEST_FUNCTION_HOOK(sub_82BE5CF0, reblue::gpu::DrawIndexedPrimitive);
-//GUEST_FUNCTION_HOOK(sub_82BE52F8, reblue::gpu::DrawPrimitiveUP);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetDepthStencilSurface, reblue::gpu::SetDepthStencilSurface);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_CreateTexture, reblue::gpu::CreateTexture);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetTexture, reblue::gpu::SetTexture);
+GUEST_FUNCTION_HOOK(GUEST__LockTextureRect, reblue::gpu::LockTextureRect);
+GUEST_FUNCTION_HOOK(GUEST__UnlockTextureRect, reblue::gpu::UnlockTextureRect);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetScissorRect, reblue::gpu::SetScissorRect);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_Resolve, reblue::gpu::StretchRect);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetIndices, reblue::gpu::SetIndices);
 
-//GUEST_FUNCTION_HOOK(sub_82BE0428, reblue::gpu::CreateVertexDeclaration);
-//GUEST_FUNCTION_HOOK(sub_82BE02E0, reblue::gpu::SetVertexDeclaration);
-//
-//GUEST_FUNCTION_HOOK(sub_82BE1A80, reblue::gpu::CreateVertexShader);
-//GUEST_FUNCTION_HOOK(sub_82BE0110, reblue::gpu::SetVertexShader);
-//
-//GUEST_FUNCTION_HOOK(sub_82BDD0F8, reblue::gpu::SetStreamSource);
-//GUEST_FUNCTION_HOOK(sub_82BDD218, reblue::gpu::SetIndices);
-//
-//GUEST_FUNCTION_HOOK(sub_82BE1990, reblue::gpu::CreatePixelShader);
-//GUEST_FUNCTION_HOOK(sub_82BDFE58, reblue::gpu::SetPixelShader);
-//
-//GUEST_FUNCTION_HOOK(sub_82C003B8, reblue::gpu::D3DXFillTexture);
-//GUEST_FUNCTION_HOOK(sub_82C00910, reblue::gpu::D3DXFillVolumeTexture);
-//
-//GUEST_FUNCTION_HOOK(sub_82E43FC8, reblue::gpu::MakePictureData);
-//
-//GUEST_FUNCTION_HOOK(sub_82E9EE38, reblue::gpu::SetResolution);
-//
-//GUEST_FUNCTION_HOOK(sub_82AE2BF8, reblue::gpu::ScreenShaderInit);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_CreatePixelShader, reblue::gpu::CreatePixelShader);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetPixelShader, reblue::gpu::SetPixelShader);
+
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_CreateIndexBuffer, reblue::gpu::CreateIndexBuffer);
+GUEST_FUNCTION_HOOK(GUEST__D3DIndexBuffer_Lock, reblue::gpu::LockIndexBuffer);
+GUEST_FUNCTION_HOOK(GUEST__D3DIndexBuffer_Unlock, reblue::gpu::UnlockIndexBuffer);
+//GUEST_FUNCTION_HOOK(GUEST__D3DIndexBuffer_GetDesc, reblue::gpu::GetIndexBufferDesc);
+
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_CreateVertexShader, reblue::gpu::CreateVertexShader);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetVertexShader, reblue::gpu::SetVertexShader);
+
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_CreateVertexBuffer, reblue::gpu::CreateVertexBuffer);
+GUEST_FUNCTION_HOOK(GUEST__D3DVertexBuffer_Lock, reblue::gpu::LockVertexBuffer);
+GUEST_FUNCTION_HOOK(GUEST__D3DVertexBuffer_Unlock, reblue::gpu::UnlockVertexBuffer);
+//GUEST_FUNCTION_HOOK(, reblue::gpu::GetVertexBufferDesc);
+
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_DrawIndexedVertices, reblue::gpu::DrawIndexedPrimitive);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_DrawVertices, reblue::gpu::DrawPrimitive);
+//GUEST_FUNCTION_HOOK(GUEST__D3DDevice_DrawVerticesUP, reblue::gpu::DrawPrimitiveUP);
+
+//GUEST_FUNCTION_HOOK(GUEST__D3DXFillTexture, reblue::gpu::D3DXFillTexture);
+//GUEST_FUNCTION_HOOK(GUEST__D3DXFillVolumeTexture, reblue::gpu::D3DXFillVolumeTexture);
+//GUEST_FUNCTION_HOOK(, reblue::gpu::CreateVertexDeclaration);
+//GUEST_FUNCTION_HOOK(, reblue::gpu::GetVertexDeclaration);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetVertexDeclaration, reblue::gpu::SetVertexDeclaration);
+//GUEST_FUNCTION_HOOK(, reblue::gpu::HashVertexDeclaration);
+
 
 // This is a buggy function that recreates framebuffers
 // if the inverse capture ratio is not 2.0, but the parameter
@@ -323,20 +357,20 @@ GUEST_FUNCTION_HOOK(sub_82BE5CF0, reblue::gpu::DrawIndexedPrimitive);
 // recreating framebuffers every single frame instead.
 //GUEST_FUNCTION_STUB(sub_82BAAD38);
 //
-//GUEST_FUNCTION_STUB(sub_822C15D8);
-//GUEST_FUNCTION_STUB(sub_822C1810);
-//GUEST_FUNCTION_STUB(sub_82BD97A8);
-//GUEST_FUNCTION_STUB(sub_82BD97E8);
-//GUEST_FUNCTION_STUB(sub_82BDD370); // SetGammaRamp
-//GUEST_FUNCTION_STUB(sub_82BE05B8);
-//GUEST_FUNCTION_STUB(sub_82BE9C98);
-//GUEST_FUNCTION_STUB(sub_82BEA308);
-//GUEST_FUNCTION_STUB(sub_82CD5D68);
-//GUEST_FUNCTION_STUB(sub_82BE9B28);
-//GUEST_FUNCTION_STUB(sub_82BEA018);
-//GUEST_FUNCTION_STUB(sub_82BEA7C0);
-//GUEST_FUNCTION_STUB(sub_82BFFF88); // D3DXFilterTexture
-//GUEST_FUNCTION_STUB(sub_82BD96D0);
+//GUEST_FUNCTION_STUB(); //stub_unk_gpu_1
+//GUEST_FUNCTION_STUB(); // stub_unk_gpu_2
+GUEST_FUNCTION_STUB(GUEST__D3DDevice_AcquireThreadOwnership); // D3DDevice_AcquireThreadOwnership
+GUEST_FUNCTION_STUB(GUEST__D3DDevice_ReleaseThreadOwnership); // D3DDevice_ReleaseThreadOwnership
+//GUEST_FUNCTION_STUB(); // SetGammaRamp
+GUEST_FUNCTION_STUB(GUEST__D3DDevice_SetShaderGPRAllocation); // D3DDevice_SetShaderGPRAllocation
+//GUEST_FUNCTION_STUB(); // stub_unk_gpu_6
+//GUEST_FUNCTION_STUB(); // stub_unk_gpu_7
+GUEST_FUNCTION_STUB(GUEST__XGGetTextureDesc); // XGGetTextureDesc
+GUEST_FUNCTION_STUB(GUEST__D3DDevice_SetPrediction); // D3DDevice_SetPredication
+//GUEST_FUNCTION_STUB(); // stub_unk_gpu_10
+//GUEST_FUNCTION_STUB(); // stub_unk_gpu_11
+GUEST_FUNCTION_STUB(GUEST__D3DXFilterTexture); // D3DXFilterTexture
+GUEST_FUNCTION_STUB(GUEST__D3DDevice_Release); // D3DDevice_Release
 
 //PPC_FUNC_IMPL(__imp__sub_824ECA00);
 //PPC_FUNC(sub_824ECA00)

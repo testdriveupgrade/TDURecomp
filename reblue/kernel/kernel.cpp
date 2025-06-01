@@ -982,6 +982,7 @@ uint32_t reblue::kernel::NtFreeVirtualMemory(uint32_t processHandle, be<uint32_t
 uint32_t reblue::kernel::NtAllocateVirtualMemory(uint32_t processHandle, be<uint32_t>* baseAddress, uint32_t zeroBits, be<uint32_t>* regionSize, uint32_t allocationType, uint32_t protect)
 {
     LOG_UTILITY("!!! STUB !!!");
+    return 0;
 }
 
 uint32_t reblue::kernel::NtWaitForSingleObjectEx(uint32_t Handle, uint32_t WaitMode, uint32_t Alertable, be<int64_t>* Timeout)
