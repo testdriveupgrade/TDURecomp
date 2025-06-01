@@ -50,4 +50,5 @@ functions = [
      { address = 0x8247CB10, size = 0x00000234 },
      { address = 0x8252E5B8, size = 0x00000100 },
      { address = 0x82598E90, size = 0x00000070 },
+     { address = 0x821A5638, size = 0x000001C0 },
 ]
