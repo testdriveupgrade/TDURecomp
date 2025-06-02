@@ -52,3 +52,7 @@ functions = [
      { address = 0x82598E90, size = 0x00000070 },
      { address = 0x821A5638, size = 0x000001C0 },
 ]
+
+invalid_instructions = [
+    { data = 0x00000000, size = 4 }, # Padding
+]

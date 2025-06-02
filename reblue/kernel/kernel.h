@@ -287,6 +287,8 @@ namespace kernel {
     void XFreeMem(uint32_t baseAddress, uint32_t flags);
     void MmQueryStatistics();
     void ExFreePool();
+    uint32_t VirtualAlloc(uint32_t lpAddress, uint32_t dwSize, uint32_t flAllocationType, uint32_t flProtect);
+    uint32_t VirtualFree(uint32_t lpAddress, uint32_t dwSize, uint32_t dwFreeType);
 
     uint32_t MmGetPhysicalAddress(uint32_t address);
     uint32_t MmAllocatePhysicalMemoryEx

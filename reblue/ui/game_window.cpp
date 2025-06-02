@@ -428,8 +428,8 @@ uint32_t GameWindow::GetWindowFlags()
     if (Config::WindowState == EWindowState::Maximised)
         flags |= SDL_WINDOW_MAXIMIZED;
 
-    if (Config::Fullscreen)
-        flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+    //if (Config::Fullscreen)
+    //    flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 
 #ifdef SDL_VULKAN_ENABLED
     flags |= SDL_WINDOW_VULKAN;

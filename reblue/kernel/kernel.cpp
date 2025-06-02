@@ -1179,6 +1179,85 @@ void reblue::kernel::ExFreePool()
     LOG_UTILITY("!!! STUB !!!");
 }
 
+uint32_t reblue::kernel::VirtualAlloc(uint32_t lpAddress, uint32_t dwSize, uint32_t flAllocationType, uint32_t flProtect)
+{
+    LOGF_UTILITY("VirtualAlloc: lpAddress=0x{:x}, dwSize=0x{:x}, flAllocationType=0x{:x}, flProtect=0x{:x}",
+        lpAddress, dwSize, flAllocationType, flProtect);
+
+    if (dwSize == 0)
+    {
+        LOGF_UTILITY("VirtualAlloc: Invalid size 0");
+        return 0;
+    }
+
+    // Convert VirtualAlloc flags to XAllocMem flags
+    uint32_t xallocFlags = 0;
+
+    // Handle zero-initialization
+    if (flProtect & (PAGE_READWRITE | PAGE_EXECUTE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_WRITECOPY))
+    {
+        xallocFlags |= 0x40000000; // XALLOC_MEMTYPE_ZERO
+    }
+
+    // Handle physical memory
+    if (flAllocationType & MEM_PHYSICAL)
+    {
+        xallocFlags |= 0x80000000; // XALLOC_MEMTYPE_PHYSICAL
+    }
+
+    // Handle large pages (use 2MB alignment)
+    if (flAllocationType & MEM_LARGE_PAGES)
+    {
+        xallocFlags |= (21 << 24); // 2MB alignment (2^21)
+    }
+
+    // Use existing working XAllocMem function
+    uint32_t result = XAllocMem(dwSize, xallocFlags);
+
+    if (result != 0)
+    {
+        LOGF_UTILITY("VirtualAlloc: Success, allocated 0x{:x} bytes at 0x{:x}", dwSize, result);
+    }
+    else
+    {
+        LOGF_UTILITY("VirtualAlloc: Failed to allocate 0x{:x} bytes", dwSize);
+    }
+
+    return result;
+}
+
+uint32_t reblue::kernel::VirtualFree(uint32_t lpAddress, uint32_t dwSize, uint32_t dwFreeType)
+{
+    LOGF_UTILITY("VirtualFree: lpAddress=0x{:x}, dwSize=0x{:x}, dwFreeType=0x{:x}",
+        lpAddress, dwSize, dwFreeType);
+
+    if (lpAddress == 0)
+    {
+        LOGF_UTILITY("VirtualFree: Invalid address 0");
+        return 0;
+    }
+
+    // For MEM_RELEASE, dwSize should be 0 (but we'll ignore it for simplicity)
+    if (dwFreeType & MEM_RELEASE)
+    {
+        // Use existing working XFreeMem function
+        XFreeMem(lpAddress, 0);
+        LOGF_UTILITY("VirtualFree: Released memory at 0x{:x}", lpAddress);
+        return 1;
+    }
+    else if (dwFreeType & MEM_DECOMMIT)
+    {
+        // For emulation, just return success for decommit
+        LOGF_UTILITY("VirtualFree: Decommit at 0x{:x} (emulated)", lpAddress);
+        return 1;
+    }
+    else
+    {
+        LOGF_UTILITY("VirtualFree: Invalid free type 0x{:x}", dwFreeType);
+        return 0;
+    }
+}
+
 uint32_t reblue::kernel::MmGetPhysicalAddress(uint32_t address)
 {
     LOGF_UTILITY("0x{:x}", address);

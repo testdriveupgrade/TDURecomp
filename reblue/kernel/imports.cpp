@@ -229,12 +229,14 @@ GUEST_FUNCTION_HOOK(__imp__IoDismountVolumeByName, reblue::kernel::IoDismountVol
 GUEST_FUNCTION_HOOK(__imp__IoSynchronousDeviceIoControlRequest, reblue::kernel::IoSynchronousDeviceIoControlRequest);
 GUEST_FUNCTION_HOOK(__imp__ObOpenObjectByName, reblue::kernel::ObOpenObjectByName);
 GUEST_FUNCTION_HOOK(__imp__ObReferenceObjectByName, reblue::kernel::ObReferenceObjectByName);
+
 GUEST_FUNCTION_HOOK(sub_824694A0, reblue::kernel::RtlAllocateHeap);
 GUEST_FUNCTION_HOOK(sub_82469D88, reblue::kernel::RtlFreeHeap);
 GUEST_FUNCTION_HOOK(sub_8246A070, reblue::kernel::RtlReAllocateHeap);
 GUEST_FUNCTION_HOOK(sub_82468738, reblue::kernel::RtlSizeHeap);
 GUEST_FUNCTION_HOOK(sub_82466CC8, reblue::kernel::XAllocMem);
 GUEST_FUNCTION_HOOK(sub_82466D60, reblue::kernel::XFreeMem);
+GUEST_FUNCTION_HOOK(sub_8248D7E8, reblue::kernel::VirtualAlloc);
 // native memory operations
 GUEST_FUNCTION_HOOK(sub_826C0480, memmove);
 GUEST_FUNCTION_HOOK(sub_826BF770, memcpy);
@@ -290,15 +292,17 @@ GUEST_FUNCTION_STUB(__imp__swprintf);
 #define GUEST__D3DIndexBuffer_GetDesc
 #define GUEST__D3DVertexBuffer_GetDesc
 #define GUEST__D3DXFilterTexture sub_82495F10
-#define GUEST__D3DDevice_Present
+#define GUEST__D3DDevice_Present sub_82273858
 #define GUEST__D3DDevice_SetResolution sub_824E39C8
-#define GUEST__D3DDevice_DrawVerticesUP
+#define GUEST__D3DDevice_DrawVerticesUP sub_8248FBC8
 #define GUEST__D3DDevice_AcquireThreadOwnership sub_8246B5A8
 #define GUEST__D3DDevice_ReleaseThreadOwnership sub_8246B5E8
 #define GUEST__D3DDevice_Release sub_8246B4E0
 #define GUEST__XGGetTextureDesc sub_82576868
 #define GUEST__D3DDevice_SetPrediction sub_8248A000
 #define GUEST__D3DDevice_SetShaderGPRAllocation sub_8247C4F8
+#define GUEST__D3DDevice_CreateVertexDeclaration sub_8247C418
+#define GUEST__D3DXCompileShaderEx sub_82497FF8
 
 GUEST_FUNCTION_HOOK(GUEST__Direct3D_CreateDevice, reblue::gpu::CreateDevice);
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetRenderTarget, reblue::gpu::SetRenderTarget);
@@ -306,7 +310,7 @@ GUEST_FUNCTION_HOOK(GUEST__D3D_DestroyResource, reblue::gpu::DestructResource);
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetStreamSource, reblue::gpu::SetStreamSource);
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetViewport, reblue::gpu::SetViewport);
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_Clear, reblue::gpu::Clear);
-//GUEST_FUNCTION_HOOK(GUEST__D3DDevice_Present, Video::Present);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_Present, Video::Present);
 //GUEST_FUNCTION_HOOK(, reblue::gpu::GetBackBuffer);
 //GUEST_FUNCTION_HOOK(, reblue::gpu::MakePictureData);
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetResolution, reblue::gpu::SetResolution);
@@ -333,6 +337,10 @@ GUEST_FUNCTION_HOOK(GUEST__D3DIndexBuffer_Unlock, reblue::gpu::UnlockIndexBuffer
 
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_CreateVertexShader, reblue::gpu::CreateVertexShader);
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetVertexShader, reblue::gpu::SetVertexShader);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_CreateVertexDeclaration, reblue::gpu::CreateVertexDeclaration);
+//GUEST_FUNCTION_HOOK(, reblue::gpu::GetVertexDeclaration);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetVertexDeclaration, reblue::gpu::SetVertexDeclaration);
+//GUEST_FUNCTION_HOOK(, reblue::gpu::HashVertexDeclaration);
 
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_CreateVertexBuffer, reblue::gpu::CreateVertexBuffer);
 GUEST_FUNCTION_HOOK(GUEST__D3DVertexBuffer_Lock, reblue::gpu::LockVertexBuffer);
@@ -341,14 +349,11 @@ GUEST_FUNCTION_HOOK(GUEST__D3DVertexBuffer_Unlock, reblue::gpu::UnlockVertexBuff
 
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_DrawIndexedVertices, reblue::gpu::DrawIndexedPrimitive);
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_DrawVertices, reblue::gpu::DrawPrimitive);
-//GUEST_FUNCTION_HOOK(GUEST__D3DDevice_DrawVerticesUP, reblue::gpu::DrawPrimitiveUP);
+GUEST_FUNCTION_HOOK(GUEST__D3DDevice_DrawVerticesUP, reblue::gpu::DrawPrimitiveUP);
 
 //GUEST_FUNCTION_HOOK(GUEST__D3DXFillTexture, reblue::gpu::D3DXFillTexture);
 //GUEST_FUNCTION_HOOK(GUEST__D3DXFillVolumeTexture, reblue::gpu::D3DXFillVolumeTexture);
-//GUEST_FUNCTION_HOOK(, reblue::gpu::CreateVertexDeclaration);
-//GUEST_FUNCTION_HOOK(, reblue::gpu::GetVertexDeclaration);
-GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetVertexDeclaration, reblue::gpu::SetVertexDeclaration);
-//GUEST_FUNCTION_HOOK(, reblue::gpu::HashVertexDeclaration);
+
 
 
 // This is a buggy function that recreates framebuffers
@@ -359,10 +364,11 @@ GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetVertexDeclaration, reblue::gpu::SetVerte
 //
 //GUEST_FUNCTION_STUB(); //stub_unk_gpu_1
 //GUEST_FUNCTION_STUB(); // stub_unk_gpu_2
-GUEST_FUNCTION_STUB(GUEST__D3DDevice_AcquireThreadOwnership); // D3DDevice_AcquireThreadOwnership
-GUEST_FUNCTION_STUB(GUEST__D3DDevice_ReleaseThreadOwnership); // D3DDevice_ReleaseThreadOwnership
+GUEST_FUNCTION_STUB(GUEST__D3DDevice_AcquireThreadOwnership);
+GUEST_FUNCTION_STUB(GUEST__D3DDevice_ReleaseThreadOwnership);
 //GUEST_FUNCTION_STUB(); // SetGammaRamp
-GUEST_FUNCTION_STUB(GUEST__D3DDevice_SetShaderGPRAllocation); // D3DDevice_SetShaderGPRAllocation
+GUEST_FUNCTION_STUB(GUEST__D3DDevice_SetShaderGPRAllocation);
+GUEST_FUNCTION_STUB(GUEST__D3DXCompileShaderEx);
 //GUEST_FUNCTION_STUB(); // stub_unk_gpu_6
 //GUEST_FUNCTION_STUB(); // stub_unk_gpu_7
 GUEST_FUNCTION_STUB(GUEST__XGGetTextureDesc); // XGGetTextureDesc
