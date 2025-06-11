@@ -202,13 +202,20 @@ int main(int argc, char *argv[])
     reblue::kernel::g_userHeap.Init();
 
     const auto gameContent = reblue::kernel::XamMakeContent(XCONTENTTYPE_RESERVED, "Game");
+    const auto cacheContent = reblue::kernel::XamMakeContent(XCONTENTTYPE_RESERVED, "Cache");
+
     reblue::kernel::XamRegisterContent(gameContent, "P:/x360/reblue-game/game");
+    reblue::kernel::XamRegisterContent(cacheContent, "P:/x360/reblue-game/cache");
 
     // Mount game
     reblue::kernel::XamContentCreateEx(0, "game", &gameContent, OPEN_EXISTING, nullptr, nullptr, 0, 0, nullptr);
 
     // OS mounts game data to D:
     reblue::kernel::XamContentCreateEx(0, "D", &gameContent, OPEN_EXISTING, nullptr, nullptr, 0, 0, nullptr);
+
+    // Mount cache
+    reblue::kernel::XamContentCreateEx(0, "cache", &cacheContent, OPEN_EXISTING, nullptr, nullptr, 0, 0, nullptr);
+
 
     XAudioInitializeSystem();
 

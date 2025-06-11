@@ -237,6 +237,7 @@ GUEST_FUNCTION_HOOK(sub_82468738, reblue::kernel::RtlSizeHeap);
 GUEST_FUNCTION_HOOK(sub_82466CC8, reblue::kernel::XAllocMem);
 GUEST_FUNCTION_HOOK(sub_82466D60, reblue::kernel::XFreeMem);
 GUEST_FUNCTION_HOOK(sub_8248D7E8, reblue::kernel::VirtualAlloc);
+GUEST_FUNCTION_HOOK(sub_8248D838, reblue::kernel::VirtualFree);
 // native memory operations
 GUEST_FUNCTION_HOOK(sub_826C0480, memmove);
 GUEST_FUNCTION_HOOK(sub_826BF770, memcpy);
@@ -257,7 +258,7 @@ GUEST_FUNCTION_STUB(__imp___vscwprintf);
 GUEST_FUNCTION_STUB(__imp__swprintf);
 
 
-// gpu
+
 #define GUEST__Direct3D_CreateDevice sub_8246B710
 #define GUEST__D3DDevice_SetRenderTarget sub_82473D78
 #define GUEST__D3DDevice_CreateSurface sub_8246D540

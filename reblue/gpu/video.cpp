@@ -2921,6 +2921,9 @@ static RenderFormat ConvertFormat(uint32_t format)
         return RenderFormat::R16G16B16A16_FLOAT;
     case D3DFMT_A8B8G8R8:
     case D3DFMT_A8R8G8B8:
+    case 0x28280186:
+    case 0x182801b6:
+    case 0x28280106:
     case D3DFMT_X8R8G8B8:
         return RenderFormat::R8G8B8A8_UNORM;
     case D3DFMT_D24FS8:
@@ -5253,10 +5256,6 @@ static void DiffPatchTexture(GuestTexture& texture, uint8_t* data, uint32_t data
     }
 }
 
-static GuestShader* g_movieVertexShader;
-static GuestShader* g_moviePixelShader;
-static GuestVertexDeclaration* g_movieVertexDeclaration;
-
 
 // Normally, we could delay setting IsMadeOne, but the game relies on that flag
 // being present to handle load priority. To work around that, we can prevent
@@ -6453,7 +6452,7 @@ uint32_t reblue::gpu::CreateDevice(uint32_t a1, uint32_t a2, uint32_t a3, uint32
     return 0;
 }
 
-void reblue::gpu::DestructResource(GuestResource* resource)
+static void reblue::gpu::DestructResource(GuestResource* resource)
 {
     RenderCommand cmd;
     cmd.type = RenderCommandType::DestructResource;
@@ -6461,7 +6460,7 @@ void reblue::gpu::DestructResource(GuestResource* resource)
     g_renderQueue.enqueue(cmd);
 }
 
-void reblue::gpu::LockTextureRect(GuestTexture* texture, uint32_t, GuestLockedRect* lockedRect)
+static void reblue::gpu::LockTextureRect(GuestTexture* texture, uint32_t, GuestLockedRect* lockedRect)
 {
     uint32_t pitch = ComputeTexturePitch(texture);
     uint32_t slicePitch = pitch * texture->height;
@@ -6473,7 +6472,7 @@ void reblue::gpu::LockTextureRect(GuestTexture* texture, uint32_t, GuestLockedRe
     lockedRect->bits = reblue::kernel::g_memory.MapVirtual(texture->mappedMemory);
 }
 
-void reblue::gpu::UnlockTextureRect(GuestTexture* texture)
+static void reblue::gpu::UnlockTextureRect(GuestTexture* texture)
 {
     assert(std::this_thread::get_id() == g_presentThreadId);
 
@@ -6483,27 +6482,27 @@ void reblue::gpu::UnlockTextureRect(GuestTexture* texture)
     g_renderQueue.enqueue(cmd);
 }
 
-void* reblue::gpu::LockVertexBuffer(GuestBuffer* buffer, uint32_t, uint32_t, uint32_t flags)
+static void* reblue::gpu::LockVertexBuffer(GuestBuffer* buffer, uint32_t, uint32_t, uint32_t flags)
 {
     return LockBuffer(buffer, flags);
 }
 
-void reblue::gpu::UnlockVertexBuffer(GuestBuffer* buffer)
+static void reblue::gpu::UnlockVertexBuffer(GuestBuffer* buffer)
 {
     UnlockBuffer<uint32_t>(buffer);
 }
 
-void reblue::gpu::GetVertexBufferDesc(GuestBuffer* buffer, GuestBufferDesc* desc)
+static void reblue::gpu::GetVertexBufferDesc(GuestBuffer* buffer, GuestBufferDesc* desc)
 {
     desc->size = buffer->dataSize;
 }
 
-void* reblue::gpu::LockIndexBuffer(GuestBuffer* buffer, uint32_t, uint32_t, uint32_t flags)
+static void* reblue::gpu::LockIndexBuffer(GuestBuffer* buffer, uint32_t, uint32_t, uint32_t flags)
 {
     return LockBuffer(buffer, flags);
 }
 
-void reblue::gpu::UnlockIndexBuffer(GuestBuffer* buffer)
+static void reblue::gpu::UnlockIndexBuffer(GuestBuffer* buffer)
 {
     if (buffer->guestFormat == D3DFMT_INDEX32)
         UnlockBuffer<uint32_t>(buffer);
@@ -6511,37 +6510,37 @@ void reblue::gpu::UnlockIndexBuffer(GuestBuffer* buffer)
         UnlockBuffer<uint16_t>(buffer);
 }
 
-void reblue::gpu::GetIndexBufferDesc(GuestBuffer* buffer, GuestBufferDesc* desc)
+static void reblue::gpu::GetIndexBufferDesc(GuestBuffer* buffer, GuestBufferDesc* desc)
 {
     desc->format = buffer->guestFormat;
     desc->size = buffer->dataSize;
 }
 
-void reblue::gpu::GetSurfaceDesc(GuestSurface* surface, GuestSurfaceDesc* desc)
+static void reblue::gpu::GetSurfaceDesc(GuestSurface* surface, GuestSurfaceDesc* desc)
 {
     desc->width = surface->width;
     desc->height = surface->height;
 }
 
-void reblue::gpu::GetVertexDeclaration(GuestVertexDeclaration* vertexDeclaration, GuestVertexElement* vertexElements, be<uint32_t>* count)
+static void reblue::gpu::GetVertexDeclaration(GuestVertexDeclaration* vertexDeclaration, GuestVertexElement* vertexElements, be<uint32_t>* count)
 {
     memcpy(vertexElements, vertexDeclaration->vertexElements.get(), vertexDeclaration->vertexElementCount * sizeof(GuestVertexElement));
     *count = vertexDeclaration->vertexElementCount;
 }
 
-uint32_t reblue::gpu::HashVertexDeclaration(uint32_t vertexDeclaration)
+static uint32_t reblue::gpu::HashVertexDeclaration(uint32_t vertexDeclaration)
 {
     // Vertex declarations are cached on host side, so the pointer itself can be used.
     return vertexDeclaration;
 }
 
-GuestSurface* reblue::gpu::GetBackBuffer()
+static GuestSurface* reblue::gpu::GetBackBuffer()
 {
     g_backBuffer->AddRef();
     return g_backBuffer;
 }
 
-GuestTexture* reblue::gpu::CreateTexture(uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t usage, uint32_t format, uint32_t pool, uint32_t type)
+static GuestTexture* reblue::gpu::CreateTexture(uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t usage, uint32_t format, uint32_t pool, uint32_t type)
 {
     const auto texture = reblue::kernel::g_userHeap.AllocPhysical<GuestTexture>(type == 17 ? ResourceType::VolumeTexture : ResourceType::Texture);
 
@@ -6601,7 +6600,7 @@ GuestTexture* reblue::gpu::CreateTexture(uint32_t width, uint32_t height, uint32
     return texture;
 }
 
-GuestBuffer* reblue::gpu::CreateVertexBuffer(uint32_t length)
+static GuestBuffer* reblue::gpu::CreateVertexBuffer(uint32_t length)
 {
     auto buffer = reblue::kernel::g_userHeap.AllocPhysical<GuestBuffer>(ResourceType::VertexBuffer);
     buffer->buffer = g_device->createBuffer(RenderBufferDesc::VertexBuffer(length, GetBufferHeapType(), RenderBufferFlag::INDEX));
@@ -6612,7 +6611,7 @@ GuestBuffer* reblue::gpu::CreateVertexBuffer(uint32_t length)
     return buffer;
 }
 
-GuestBuffer* reblue::gpu::CreateIndexBuffer(uint32_t length, uint32_t, uint32_t format)
+static GuestBuffer* reblue::gpu::CreateIndexBuffer(uint32_t length, uint32_t, uint32_t format)
 {
     auto buffer = reblue::kernel::g_userHeap.AllocPhysical<GuestBuffer>(ResourceType::IndexBuffer);
     buffer->buffer = g_device->createBuffer(RenderBufferDesc::IndexBuffer(length, GetBufferHeapType()));
@@ -6625,7 +6624,7 @@ GuestBuffer* reblue::gpu::CreateIndexBuffer(uint32_t length, uint32_t, uint32_t 
     return buffer;
 }
 
-GuestSurface* reblue::gpu::CreateSurface(uint32_t width, uint32_t height, uint32_t format, uint32_t multiSample)
+static GuestSurface* reblue::gpu::CreateSurface(uint32_t width, uint32_t height, uint32_t format, uint32_t multiSample)
 {
     RenderTextureDesc desc;
     desc.dimension = RenderTextureDimension::TEXTURE_2D;
@@ -6664,7 +6663,7 @@ GuestSurface* reblue::gpu::CreateSurface(uint32_t width, uint32_t height, uint32
     return surface;
 }
 
-void reblue::gpu::StretchRect(GuestDevice* device, uint32_t flags, uint32_t, GuestTexture* texture)
+static void reblue::gpu::StretchRect(GuestDevice* device, uint32_t flags, uint32_t, GuestTexture* texture)
 {
     RenderCommand cmd;
     cmd.type = RenderCommandType::StretchRect;
@@ -6673,7 +6672,7 @@ void reblue::gpu::StretchRect(GuestDevice* device, uint32_t flags, uint32_t, Gue
     g_renderQueue.enqueue(cmd);
 }
 
-void reblue::gpu::SetRenderTarget(GuestDevice* device, uint32_t index, GuestSurface* renderTarget)
+static void reblue::gpu::SetRenderTarget(GuestDevice* device, uint32_t index, GuestSurface* renderTarget)
 {
     RenderCommand cmd;
     cmd.type = RenderCommandType::SetRenderTarget;
@@ -6683,7 +6682,7 @@ void reblue::gpu::SetRenderTarget(GuestDevice* device, uint32_t index, GuestSurf
     SetDefaultViewport(device, renderTarget);
 }
 
-void reblue::gpu::SetDepthStencilSurface(GuestDevice* device, GuestSurface* depthStencil)
+static void reblue::gpu::SetDepthStencilSurface(GuestDevice* device, GuestSurface* depthStencil)
 {
     RenderCommand cmd;
     cmd.type = RenderCommandType::SetDepthStencilSurface;
@@ -6693,7 +6692,7 @@ void reblue::gpu::SetDepthStencilSurface(GuestDevice* device, GuestSurface* dept
     SetDefaultViewport(device, depthStencil);
 }
 
-void reblue::gpu::Clear(GuestDevice* device, uint32_t flags, uint32_t, be<float>* color, double z)
+static void reblue::gpu::Clear(GuestDevice* device, uint32_t count, be<uint32_t>* pRects, uint32_t flags, uint32_t, be<float>* color, double z, uint32_t stencil, bool EDRAMClear)
 {
     RenderCommand cmd;
     cmd.type = RenderCommandType::Clear;
@@ -6706,7 +6705,7 @@ void reblue::gpu::Clear(GuestDevice* device, uint32_t flags, uint32_t, be<float>
     g_renderQueue.enqueue(cmd);
 }
 
-void reblue::gpu::SetViewport(GuestDevice* device, GuestViewport* viewport)
+static void reblue::gpu::SetViewport(GuestDevice* device, GuestViewport* viewport)
 {
     RenderCommand cmd;
     cmd.type = RenderCommandType::SetViewport;
@@ -6726,7 +6725,7 @@ void reblue::gpu::SetViewport(GuestDevice* device, GuestViewport* viewport)
     device->viewport.maxZ = viewport->maxZ;
 }
 
-void reblue::gpu::SetTexture(GuestDevice* device, uint32_t index, GuestTexture* texture)
+static void reblue::gpu::SetTexture(GuestDevice* device, uint32_t index, GuestTexture* texture)
 {
     auto isPlayStation = Config::ControllerIcons == EControllerIcons::PlayStation;
 
@@ -6743,7 +6742,7 @@ void reblue::gpu::SetTexture(GuestDevice* device, uint32_t index, GuestTexture* 
     g_renderQueue.enqueue(cmd);
 }
 
-void reblue::gpu::SetScissorRect(GuestDevice* device, GuestRect* rect)
+static void reblue::gpu::SetScissorRect(GuestDevice* device, GuestRect* rect)
 {
     RenderCommand cmd;
     cmd.type = RenderCommandType::SetScissorRect;
@@ -6754,7 +6753,7 @@ void reblue::gpu::SetScissorRect(GuestDevice* device, GuestRect* rect)
     g_renderQueue.enqueue(cmd);
 }
 
-void reblue::gpu::DrawPrimitive(GuestDevice* device, uint32_t primitiveType, uint32_t startVertex, uint32_t primitiveCount)
+static void reblue::gpu::DrawPrimitive(GuestDevice* device, uint32_t primitiveType, uint32_t startVertex, uint32_t primitiveCount)
 {
     LocalRenderCommandQueue queue;
     FlushRenderStateForMainThread(device, queue);
@@ -6768,7 +6767,7 @@ void reblue::gpu::DrawPrimitive(GuestDevice* device, uint32_t primitiveType, uin
     queue.submit();
 }
 
-void reblue::gpu::DrawIndexedPrimitive(GuestDevice* device, uint32_t primitiveType, int32_t baseVertexIndex, uint32_t startIndex, uint32_t primCount)
+static void reblue::gpu::DrawIndexedPrimitive(GuestDevice* device, uint32_t primitiveType, int32_t baseVertexIndex, uint32_t startIndex, uint32_t primCount)
 {
     LocalRenderCommandQueue queue;
     FlushRenderStateForMainThread(device, queue);
@@ -6783,7 +6782,7 @@ void reblue::gpu::DrawIndexedPrimitive(GuestDevice* device, uint32_t primitiveTy
     queue.submit();
 }
 
-void reblue::gpu::DrawPrimitiveUP(GuestDevice* device, uint32_t primitiveType, uint32_t primitiveCount, void* vertexStreamZeroData, uint32_t vertexStreamZeroStride)
+static void reblue::gpu::DrawPrimitiveUP(GuestDevice* device, uint32_t primitiveType, uint32_t primitiveCount, void* vertexStreamZeroData, uint32_t vertexStreamZeroStride)
 {
     LocalRenderCommandQueue queue;
     FlushRenderStateForMainThread(device, queue);
@@ -6800,14 +6799,14 @@ void reblue::gpu::DrawPrimitiveUP(GuestDevice* device, uint32_t primitiveType, u
     queue.submit();
 }
 
-GuestVertexDeclaration* reblue::gpu::CreateVertexDeclaration(GuestVertexElement* vertexElements)
+static GuestVertexDeclaration* reblue::gpu::CreateVertexDeclaration(GuestVertexElement* vertexElements)
 {
     auto vertexDeclaration = CreateVertexDeclarationWithoutAddRef(vertexElements);
     vertexDeclaration->AddRef();
     return vertexDeclaration;
 }
 
-void reblue::gpu::SetVertexDeclaration(GuestDevice* device, GuestVertexDeclaration* vertexDeclaration)
+static void reblue::gpu::SetVertexDeclaration(GuestDevice* device, GuestVertexDeclaration* vertexDeclaration)
 {
     RenderCommand cmd;
     cmd.type = RenderCommandType::SetVertexDeclaration;
@@ -6817,12 +6816,12 @@ void reblue::gpu::SetVertexDeclaration(GuestDevice* device, GuestVertexDeclarati
     device->vertexDeclaration = reblue::kernel::g_memory.MapVirtual(vertexDeclaration);
 }
 
-GuestShader* reblue::gpu::CreateVertexShader(const be<uint32_t>* function)
+static GuestShader* reblue::gpu::CreateVertexShader(const be<uint32_t>* function)
 {
     return CreateShader(function, ResourceType::VertexShader);
 }
 
-void reblue::gpu::SetVertexShader(GuestDevice* device, GuestShader* shader)
+static void reblue::gpu::SetVertexShader(GuestDevice* device, GuestShader* shader)
 {
     RenderCommand cmd;
     cmd.type = RenderCommandType::SetVertexShader;
@@ -6830,7 +6829,7 @@ void reblue::gpu::SetVertexShader(GuestDevice* device, GuestShader* shader)
     g_renderQueue.enqueue(cmd);
 }
 
-void reblue::gpu::SetStreamSource(GuestDevice* device, uint32_t index, GuestBuffer* buffer, uint32_t offset, uint32_t stride)
+static void reblue::gpu::SetStreamSource(GuestDevice* device, uint32_t index, GuestBuffer* buffer, uint32_t offset, uint32_t stride)
 {
     RenderCommand cmd;
     cmd.type = RenderCommandType::SetStreamSource;
@@ -6841,7 +6840,7 @@ void reblue::gpu::SetStreamSource(GuestDevice* device, uint32_t index, GuestBuff
     g_renderQueue.enqueue(cmd);
 }
 
-void reblue::gpu::SetIndices(GuestDevice* device, GuestBuffer* buffer)
+static void reblue::gpu::SetIndices(GuestDevice* device, GuestBuffer* buffer)
 {
     RenderCommand cmd;
     cmd.type = RenderCommandType::SetIndices;
@@ -6849,12 +6848,12 @@ void reblue::gpu::SetIndices(GuestDevice* device, GuestBuffer* buffer)
     g_renderQueue.enqueue(cmd);
 }
 
-GuestShader* reblue::gpu::CreatePixelShader(const be<uint32_t>* function)
+static GuestShader* reblue::gpu::CreatePixelShader(const be<uint32_t>* function)
 {
     return CreateShader(function, ResourceType::PixelShader);
 }
 
-void reblue::gpu::SetPixelShader(GuestDevice* device, GuestShader* shader)
+static void reblue::gpu::SetPixelShader(GuestDevice* device, GuestShader* shader)
 {
     RenderCommand cmd;
     cmd.type = RenderCommandType::SetPixelShader;
@@ -6862,7 +6861,7 @@ void reblue::gpu::SetPixelShader(GuestDevice* device, GuestShader* shader)
     g_renderQueue.enqueue(cmd);
 }
 
-void reblue::gpu::D3DXFillTexture(GuestTexture* texture, uint32_t function, void* data)
+static void reblue::gpu::D3DXFillTexture(GuestTexture* texture, uint32_t function, void* data)
 {
     if (texture->width == 1 && texture->height == 1 && texture->format == RenderFormat::R8_UNORM && function == 0x82BA2150)
     {
@@ -6885,7 +6884,7 @@ void reblue::gpu::D3DXFillTexture(GuestTexture* texture, uint32_t function, void
     }
 }
 
-void reblue::gpu::D3DXFillVolumeTexture(GuestTexture* texture, uint32_t function, void* data)
+static void reblue::gpu::D3DXFillVolumeTexture(GuestTexture* texture, uint32_t function, void* data)
 {
     uint32_t rowPitch0 = (texture->width * 4 + PITCH_ALIGNMENT - 1) & ~(PITCH_ALIGNMENT - 1);
     uint32_t slicePitch0 = (rowPitch0 * texture->height * texture->depth + PLACEMENT_ALIGNMENT - 1) & ~(PLACEMENT_ALIGNMENT - 1);
@@ -6982,7 +6981,7 @@ void reblue::gpu::D3DXFillVolumeTexture(GuestTexture* texture, uint32_t function
     texture->layout = RenderTextureLayout::COPY_DEST;
 }
 
-void reblue::gpu::MakePictureData(GuestPictureData* pictureData, uint8_t* data, uint32_t dataSize)
+static void reblue::gpu::MakePictureData(GuestPictureData* pictureData, uint8_t* data, uint32_t dataSize)
 {
     if ((pictureData->flags & 0x1) == 0 && data != nullptr)
     {
@@ -7013,33 +7012,7 @@ void reblue::gpu::MakePictureData(GuestPictureData* pictureData, uint8_t* data, 
     }
 }
 
-void reblue::gpu::ScreenShaderInit(be<uint32_t>* a1, uint32_t a2, uint32_t a3, GuestVertexElement* vertexElements)
-{
-    if (g_moviePixelShader == nullptr)
-    {
-        g_moviePixelShader = reblue::kernel::g_userHeap.AllocPhysical<GuestShader>(ResourceType::PixelShader);
-        g_moviePixelShader->shader = CREATE_SHADER(movie_ps);
-    }
-
-    if (g_movieVertexShader == nullptr)
-    {
-        g_movieVertexShader = reblue::kernel::g_userHeap.AllocPhysical<GuestShader>(ResourceType::VertexShader);
-        g_movieVertexShader->shader = CREATE_SHADER(movie_vs);
-    }
-
-    if (g_movieVertexDeclaration == nullptr)
-        g_movieVertexDeclaration = CreateVertexDeclarationWithoutAddRef(vertexElements);
-
-    g_moviePixelShader->AddRef();
-    g_movieVertexShader->AddRef();
-    g_movieVertexDeclaration->AddRef();
-
-    a1[2] = reblue::kernel::g_memory.MapVirtual(g_moviePixelShader);
-    a1[3] = reblue::kernel::g_memory.MapVirtual(g_movieVertexShader);
-    a1[4] = reblue::kernel::g_memory.MapVirtual(g_movieVertexDeclaration);
-}
-
-void reblue::gpu::SetResolution(be<uint32_t>* device)
+static void reblue::gpu::SetResolution(be<uint32_t>* device)
 {
     Video::ComputeViewportDimensions();
 
@@ -7048,3 +7021,34 @@ void reblue::gpu::SetResolution(be<uint32_t>* device)
     device[46] = width == 0 ? 880 : width;
     device[47] = height == 0 ? 720 : height;
 }
+
+static GuestShader* g_movieVertexShader;
+static GuestShader* g_moviePixelShader;
+static GuestVertexDeclaration* g_movieVertexDeclaration;
+
+static GuestShader* reblue::gpu::CreateMoviePixelShader(be<uint32_t>* hlslShader)
+{
+    if (g_moviePixelShader == nullptr)
+    {
+        g_moviePixelShader = reblue::kernel::g_userHeap.AllocPhysical<GuestShader>(ResourceType::PixelShader);
+        g_moviePixelShader->shader = CREATE_SHADER(movie_ps);
+    }
+
+    g_moviePixelShader->AddRef();
+
+    return g_moviePixelShader;
+}
+
+static GuestShader* reblue::gpu::CreateMovieVertexShader(be<uint32_t>* hlslShader)
+{
+    if (g_movieVertexShader == nullptr)
+    {
+        g_movieVertexShader = reblue::kernel::g_userHeap.AllocPhysical<GuestShader>(ResourceType::VertexShader);
+        g_movieVertexShader->shader = CREATE_SHADER(movie_vs);
+    }
+
+    g_movieVertexShader->AddRef();
+
+    return g_movieVertexShader;
+}
+

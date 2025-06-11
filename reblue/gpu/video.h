@@ -126,6 +126,8 @@ enum GuestFormat
     D3DFMT_A16B16G16R16F_2 = 0x1A2201BF,
     D3DFMT_A8B8G8R8 = 0x1A200186,
     D3DFMT_A8R8G8B8 = 0x18280186,
+    D3DFMT_A8R8G8B8_2 = 0x28280186,
+
     D3DFMT_D24FS8 = 0x1A220197,
     D3DFMT_D24S8 = 0x2D200196,
     D3DFMT_G16R16F = 0x2D22AB9F,
@@ -462,7 +464,7 @@ namespace reblue {
 
         extern void SetDepthStencilSurface(GuestDevice* device, GuestSurface* depthStencil);
 
-        extern void Clear(GuestDevice* device, uint32_t flags, uint32_t, be<float>* color, double z);
+        extern void Clear(GuestDevice* device, uint32_t count, be<uint32_t>* pRects, uint32_t flags, uint32_t, be<float>* color, double z, uint32_t stencil, bool EDRAMClear);
 
         extern void SetViewport(GuestDevice* device, GuestViewport* viewport);
 
@@ -495,8 +497,10 @@ namespace reblue {
 
         extern void MakePictureData(GuestPictureData* pictureData, uint8_t* data, uint32_t dataSize);
 
-        extern void ScreenShaderInit(be<uint32_t>* a1, uint32_t a2, uint32_t a3, GuestVertexElement* vertexElements);
-
         extern void SetResolution(be<uint32_t>* device);
+
+        extern GuestShader* CreateMoviePixelShader(be<uint32_t>* hlslShader);
+        extern GuestShader* CreateMovieVertexShader(be<uint32_t>* hlslShader);
+
     }
 }
