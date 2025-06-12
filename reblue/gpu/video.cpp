@@ -6398,6 +6398,7 @@ public:
 SDLEventListenerForPSOCaching g_sdlEventListenerForPSOCaching;
 #endif
 
+
 uint32_t reblue::gpu::CreateDevice(uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, be<uint32_t>* a6)
 {
     g_xdbfTextureCache = std::unordered_map<uint16_t, GuestTexture*>();
@@ -6440,8 +6441,25 @@ uint32_t reblue::gpu::CreateDevice(uint32_t a1, uint32_t a2, uint32_t a3, uint32
         device->setRenderStateFunctions[state / 4] = functionOffset;
     }
 
-    for (size_t i = 0; i < std::size(device->setSamplerStateFunctions); i++)
-        device->setSamplerStateFunctions[i] = *reinterpret_cast<uint32_t*>(reblue::kernel::g_memory.Translate(0x8330F3DC + i * 0xC));
+    // init default sampler functions
+    // address table structure:
+    //   addr   D3DDevice_GetSamplerState_XXX
+    //   addr   D3DDevice_SetSamplerState_XXX
+    //   dword  unknown
+    // Render state funcs are stored the same way
+
+    uint32_t samplersInitOffs = 0x827521f8;
+    for (size_t i = 0; i < std::size(device->setSamplerStateFunctions); i++) {
+        device->getSamplerStateFunctions[i] = *reinterpret_cast<uint32_t*>(reblue::kernel::g_memory.Translate(samplersInitOffs + (i * 0xC)));
+        device->setSamplerStateFunctions[i] = *reinterpret_cast<uint32_t*>(reblue::kernel::g_memory.Translate((samplersInitOffs + 4) + (i * 0xC)));
+    }
+
+    // fill get render state functions
+    uint32_t getRenderStateOffset = 0x82751d68;
+    for(size_t i = 0; i < std::size(device->getRenderStateFunctions); i++)
+    {
+        device->getRenderStateFunctions[i] = *reinterpret_cast<uint32_t*>(reblue::kernel::g_memory.Translate((getRenderStateOffset + 4) + (i * 0xC)));
+    }
 
     device->viewport.width = 1280.0f;
     device->viewport.height = 720.0f;

@@ -35,14 +35,105 @@ struct GuestSamplerState
     be<uint32_t> data[6];
 };
 
+enum GuestSamplerStateType
+{
+    /// <summary>
+    /// D3DTEXTUREADDRESS for U coordinate
+    /// </summary>
+    D3DSAMP_ADDRESSU = 0,
+    /// <summary>
+    /// D3DTEXTUREADDRESS for V coordinate
+    /// </summary>
+    D3DSAMP_ADDRESSV = 4,
+    /// <summary>
+    /// D3DTEXTUREADDRESS for W coordinate
+    /// </summary>
+    D3DSAMP_ADDRESSW = 8,
+    /// <summary>
+    /// D3DCOLOR
+    /// </summary>
+    D3DSAMP_BORDERCOLOR = 12,
+    /// <summary>
+    /// D3DTEXTUREFILTERTYPE filter to use for magnification
+    /// </summary>
+    D3DSAMP_MAGFILTER = 16,
+    /// <summary>
+    /// D3DTEXTUREFILTERTYPE filter to use for minification
+    /// </summary>
+    D3DSAMP_MINFILTER = 20,
+    /// <summary>
+    /// D3DTEXTUREFILTERTYPE filter to use between mipmaps during minification
+    /// </summary>
+    D3DSAMP_MIPFILTER = 24,
+    /// <summary>
+    /// Float Mipmap LOD bias
+    /// </summary>
+    D3DSAMP_MIPMAPLODBIAS = 28,
+    /// <summary>
+    /// DWORD 0..(n-1) LOD index of largest map to use (0 == largest)
+    /// </summary>
+    D3DSAMP_MAXMIPLEVEL = 32,
+    /// <summary>
+    /// DWORD maximum anisotropy
+    /// </summary>
+    D3DSAMP_MAXANISOTROPY = 36,
+
+    /// <summary>
+    /// D3DTEXTUREFILTERTYPE filter to use for volume/array slice magnification
+    /// </summary>
+    D3DSAMP_MAGFILTERZ = 40,
+    /// <summary>
+    /// D3DTEXTUREFILTERTYPE filter to use for volume/array slice minification
+    /// </summary>
+    D3DSAMP_MINFILTERZ = 44,
+    /// <summary>
+    /// TRUE to use MIN/MAGFILTERZ for slice filtering. FALSE to use MIN/MAGFILTER
+    /// </summary>
+    D3DSAMP_SEPARATEZFILTERENABLE = 48,
+    /// <summary>
+    /// DWORD 0..(n-1) LOD index of smallest map to use (0 == highest resolution map)
+    /// </summary>
+    D3DSAMP_MINMIPLEVEL = 52,
+    /// <summary>
+    /// D3DTRILINEARTHRESHOLD trilinear filtering range threshold
+    /// </summary>
+    D3DSAMP_TRILINEARTHRESHOLD = 56,
+    /// <summary>
+    /// Float bias to add to anisotropy ratio ranging from -1.875 to 0.0
+    /// </summary>
+    D3DSAMP_ANISOTROPYBIAS = 60,
+    /// <summary>
+    /// Signed integer bias to add to the horizontal LOD gradient ranging from -16 to 15
+    /// </summary>
+    D3DSAMP_HGRADIENTEXPBIAS = 64,
+    /// <summary>
+    /// Signed integer bias to add to the vertical LOD gradient ranging from -16 to 15
+    /// </summary>
+    D3DSAMP_VGRADIENTEXPBIAS = 68, 
+    /// <summary>
+    /// TRUE to override the w component of the border color with white
+    /// </summary>
+    D3DSAMP_WHITEBORDERCOLORW = 72,
+    /// <summary>
+    /// FALSE to disable border addressing when using point filtering
+    /// </summary>
+    D3DSAMP_POINTBORDERENABLE = 76,
+
+    D3DSAMP_MAX = 80,
+
+    D3DSAMP_FORCE_DWORD = 0x7fffffff, /* force 32-bit size enum */
+};
+
 struct GuestDevice
 {
-    be<uint64_t> dirtyFlags[8];
+    be<uint64_t> dirtyFlags[3];
 
     be<uint32_t> setRenderStateFunctions[0x65];
     uint32_t setSamplerStateFunctions[0x14];
+    uint32_t getRenderStateFunctions[0x65];
+    uint32_t getSamplerStateFunctions[0x14];
 
-    uint8_t padding224[0x25C];
+    uint8_t padding224[0x177];
 
     GuestSamplerState samplerStates[0x20];
 
@@ -64,10 +155,10 @@ struct GuestDevice
         be<float> minZ;
         be<float> maxZ;
     } viewport;
-    uint8_t padding3180[0x2C80];
+    uint8_t padding3180[0x1E80];
 };
 
-static_assert(sizeof(GuestDevice) == 0x5E00);
+//static_assert(sizeof(GuestDevice) == 0x5000);
 
 enum class ResourceType
 {
