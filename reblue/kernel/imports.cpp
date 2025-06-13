@@ -304,6 +304,13 @@ GUEST_FUNCTION_STUB(__imp__swprintf);
 #define GUEST__D3DDevice_SetShaderGPRAllocation sub_8247C4F8
 #define GUEST__D3DDevice_CreateVertexDeclaration sub_8247C418
 #define GUEST__D3DXCompileShaderEx sub_82497FF8
+#define GUEST__hcgVertexShaderCreateByHlsl sub_82286630
+#define GUEST__hcgPixelShaderCreateByHlsl sub_82286770
+#define GUEST__D3DDevice_SetGammaRamp sub_82473A78
+
+GUEST_FUNCTION_HOOK(GUEST__hcgVertexShaderCreateByHlsl, reblue::gpu::CreateMovieVertexShader);
+GUEST_FUNCTION_HOOK(GUEST__hcgPixelShaderCreateByHlsl, reblue::gpu::CreateMoviePixelShader);
+
 
 GUEST_FUNCTION_HOOK(GUEST__Direct3D_CreateDevice, reblue::gpu::CreateDevice);
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetRenderTarget, reblue::gpu::SetRenderTarget);
@@ -312,10 +319,7 @@ GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetStreamSource, reblue::gpu::SetStreamSour
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetViewport, reblue::gpu::SetViewport);
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_Clear, reblue::gpu::Clear);
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_Present, Video::Present);
-//GUEST_FUNCTION_HOOK(, reblue::gpu::GetBackBuffer);
-//GUEST_FUNCTION_HOOK(, reblue::gpu::MakePictureData);
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_SetResolution, reblue::gpu::SetResolution);
-//GUEST_FUNCTION_HOOK(, reblue::gpu::ScreenShaderInit);
 GUEST_FUNCTION_HOOK(GUEST__D3DDevice_CreateSurface, reblue::gpu::CreateSurface);
 GUEST_FUNCTION_HOOK(GUEST__D3DSurface_GetDesc, reblue::gpu::GetSurfaceDesc);
 
@@ -356,35 +360,13 @@ GUEST_FUNCTION_HOOK(GUEST__D3DDevice_DrawVerticesUP, reblue::gpu::DrawPrimitiveU
 //GUEST_FUNCTION_HOOK(GUEST__D3DXFillVolumeTexture, reblue::gpu::D3DXFillVolumeTexture);
 
 
-
-// This is a buggy function that recreates framebuffers
-// if the inverse capture ratio is not 2.0, but the parameter
-// is completely unused and not stored, so it ends up
-// recreating framebuffers every single frame instead.
-//GUEST_FUNCTION_STUB(sub_82BAAD38);
-//
-//GUEST_FUNCTION_STUB(); //stub_unk_gpu_1
-//GUEST_FUNCTION_STUB(); // stub_unk_gpu_2
+GUEST_FUNCTION_STUB(sub_8246EEB8); // D3D::D3DDevice_BlockUntilIdle
 GUEST_FUNCTION_STUB(GUEST__D3DDevice_AcquireThreadOwnership);
 GUEST_FUNCTION_STUB(GUEST__D3DDevice_ReleaseThreadOwnership);
-//GUEST_FUNCTION_STUB(); // SetGammaRamp
+GUEST_FUNCTION_STUB(GUEST__D3DDevice_SetGammaRamp); // SetGammaRamp
 GUEST_FUNCTION_STUB(GUEST__D3DDevice_SetShaderGPRAllocation);
 GUEST_FUNCTION_STUB(GUEST__D3DXCompileShaderEx);
-//GUEST_FUNCTION_STUB(); // stub_unk_gpu_6
-//GUEST_FUNCTION_STUB(); // stub_unk_gpu_7
-GUEST_FUNCTION_STUB(GUEST__XGGetTextureDesc); // XGGetTextureDesc
 GUEST_FUNCTION_STUB(GUEST__D3DDevice_SetPrediction); // D3DDevice_SetPredication
-//GUEST_FUNCTION_STUB(); // stub_unk_gpu_10
-//GUEST_FUNCTION_STUB(); // stub_unk_gpu_11
 GUEST_FUNCTION_STUB(GUEST__D3DXFilterTexture); // D3DXFilterTexture
 GUEST_FUNCTION_STUB(GUEST__D3DDevice_Release); // D3DDevice_Release
-
-//PPC_FUNC_IMPL(__imp__sub_824ECA00);
-//PPC_FUNC(sub_824ECA00)
-//{
-//    // Guard against thread ownership changes when between command lists.
-//    g_readyForCommands.wait(false);
-//    g_presentThreadId = std::this_thread::get_id();
-//    __imp__sub_824ECA00(ctx, base);
-//}
-
+GUEST_FUNCTION_STUB(sub_82466ED8);

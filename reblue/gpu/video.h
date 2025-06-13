@@ -15,6 +15,9 @@
 
 #define LOAD_ZSTD_TEXTURE(name) LoadTexture(decompressZstd(name, name##_uncompressed_size).get(), name##_uncompressed_size)
 
+#define PSO_CACHING
+#define UNLEASHED_RECOMP_D3D12
+
 using namespace plume;
 
 struct Video

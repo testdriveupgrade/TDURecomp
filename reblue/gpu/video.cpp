@@ -29,7 +29,7 @@
 
 #include "../../tools/XenosRecomp/XenosRecomp/shader_common.h"
 
-#ifdef UNLEASHED_RECOMP_D3D12
+
 #include "shader/blend_color_alpha_ps.hlsl.dxil.h"
 #include "shader/copy_vs.hlsl.dxil.h"
 #include "shader/copy_color_ps.hlsl.dxil.h"
@@ -53,7 +53,7 @@
 #include "shader/resolve_msaa_depth_2x.hlsl.dxil.h"
 #include "shader/resolve_msaa_depth_4x.hlsl.dxil.h"
 #include "shader/resolve_msaa_depth_8x.hlsl.dxil.h"
-#endif
+
 
 #include "shader/blend_color_alpha_ps.hlsl.spirv.h"
 #include "shader/copy_vs.hlsl.spirv.h"
@@ -386,7 +386,7 @@ static Mutex g_debugMutex;
 
 #ifdef PSO_CACHING
 static xxHashMap<PipelineState> g_pipelineStatesToCache;
-static Mutex g_pipelineCacheMutex;
+static reblue::kernel::Mutex g_pipelineCacheMutex;
 #endif
 
 static std::atomic<uint32_t> g_compilingPipelineTaskCount;
@@ -1276,7 +1276,6 @@ static GuestShader* g_csdShader;
 
 static std::unique_ptr<GuestShader> g_enhancedMotionBlurShader;
 
-#ifdef UNLEASHED_RECOMP_D3D12
 
 #define CREATE_SHADER(NAME) \
     g_device->createShader( \
@@ -1284,13 +1283,6 @@ static std::unique_ptr<GuestShader> g_enhancedMotionBlurShader;
         g_vulkan ? sizeof(g_##NAME##_spirv) : sizeof(g_##NAME##_dxil), \
         "main", \
         g_vulkan ? RenderShaderFormat::SPIRV : RenderShaderFormat::DXIL)
-
-#else
-
-#define CREATE_SHADER(NAME) \
-    g_device->createShader(g_##NAME##_spirv, sizeof(g_##NAME##_spirv), "main", RenderShaderFormat::SPIRV)
-
-#endif
 
 #ifdef _WIN32
 static bool DetectWine()
@@ -1653,15 +1645,13 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
 
     GameWindow::Init(sdlVideoDriver);
 
-#ifdef UNLEASHED_RECOMP_D3D12
     g_vulkan = DetectWine() || Config::GraphicsAPI == EGraphicsAPI::Vulkan;
-#endif
+
 
     // Attempt to create the possible backends using a vector of function pointers. Whichever succeeds first will be the chosen API.
     using RenderInterfaceFunction = std::unique_ptr<RenderInterface>(void);
     std::vector<RenderInterfaceFunction *> interfaceFunctions;
 
-#ifdef UNLEASHED_RECOMP_D3D12
     bool allowVulkanRedirection = true;
 
     if (graphicsApiRetry)
@@ -1676,18 +1666,15 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
 
     interfaceFunctions.push_back(g_vulkan ? CreateVulkanInterfaceWrapper : CreateD3D12Interface);
     interfaceFunctions.push_back(g_vulkan ? CreateD3D12Interface : CreateVulkanInterfaceWrapper);
-#else
-    interfaceFunctions.push_back(CreateVulkanInterfaceWrapper);
-#endif
+
 
     for (size_t i = 0; i < interfaceFunctions.size(); i++)
     {
         RenderInterfaceFunction* interfaceFunction = interfaceFunctions[i];
 
-#ifdef UNLEASHED_RECOMP_D3D12
         // Wrap the device creation in __try/__except to survive from driver crashes.
         __try
-#endif
+
         {
             g_interface = interfaceFunction();
             if (g_interface == nullptr)
@@ -1700,7 +1687,7 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
             {
                 const RenderDeviceDescription &deviceDescription = g_device->getDescription();
                 
-#ifdef UNLEASHED_RECOMP_D3D12
+
                 if (interfaceFunction == CreateD3D12Interface)
                 {
                     if (allowVulkanRedirection)
@@ -1747,7 +1734,7 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
                 }
 
                 g_vulkan = (interfaceFunction == CreateVulkanInterfaceWrapper);
-#endif
+
                 // Enable triangle strip workaround if we are on AMD, as there is a bug where
                 // restart indices cause triangles to be culled incorrectly. Converting them to degenerate triangles fixes it.
                 g_triangleStripWorkaround = (deviceDescription.vendor == RenderDeviceVendor::AMD);
@@ -1755,7 +1742,7 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
                 break;
             }
         }
-#ifdef UNLEASHED_RECOMP_D3D12
+
         __except (EXCEPTION_EXECUTE_HANDLER)
         {
             if (graphicsApiRetry)
@@ -1770,7 +1757,7 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
                 std::_Exit(0);
             }
         }
-#endif
+
     }
 
     if (g_device == nullptr)
@@ -1778,13 +1765,12 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
         return false;
     }
 
-#ifdef UNLEASHED_RECOMP_D3D12
     if (graphicsApiRetry)
     {
         // If we managed to create a device after retrying it in a reboot, remember the one we picked.
         Config::GraphicsAPI = g_vulkan ? EGraphicsAPI::Vulkan : EGraphicsAPI::D3D12;
     }
-#endif
+
 
     g_capabilities = g_device->getCapabilities();
 
@@ -6692,6 +6678,10 @@ static void reblue::gpu::StretchRect(GuestDevice* device, uint32_t flags, uint32
 
 static void reblue::gpu::SetRenderTarget(GuestDevice* device, uint32_t index, GuestSurface* renderTarget)
 {
+    if (renderTarget == nullptr)
+    {
+        return;
+    }
     RenderCommand cmd;
     cmd.type = RenderCommandType::SetRenderTarget;
     cmd.setRenderTarget.renderTarget = renderTarget;

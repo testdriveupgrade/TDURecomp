@@ -31,6 +31,8 @@ void GlobalMemoryStatusImpl(XLPMEMORYSTATUS lpMemoryStatus)
     lpMemoryStatus->dwAvailVirtual = 0x20000000;
 }
 
+GUEST_FUNCTION_HOOK(sub_82274140, GuestThread::SetThreadName);
+
 //#ifdef _WIN32
 GUEST_FUNCTION_HOOK(sub_8248D058, OutputDebugStringA);
 //void guest_output_debug_string(const char* fmt)  
@@ -54,24 +56,3 @@ GUEST_FUNCTION_HOOK(sub_8248CED0, GlobalMemoryStatusImpl);
 //    sub_831B1630(ctx, base);
 //}
 
-PPC_FUNC_IMPL(__imp__sub_822741B8);
-PPC_FUNC(sub_822741B8)
-{
-    auto threadName = reinterpret_cast<const char*>(base + ctx.r3.u32);
-    auto fnStart = reinterpret_cast<uint32_t>(ctx.r4.u32);
-    LOGF_UTILITY("Create Worker Thread '{}' Function Start = 0x{:x}", threadName, fnStart);
-    __imp__sub_822741B8(ctx, base);
-}
-
-
-void D3DDeviceSetSamplersHook()
-{
-    return;
-}
-
-// SetupFramework??
-//GUEST_FUNCTION_STUB(sub_826E5C78);
-// UpdateGlobalRenderingFlags
-//GUEST_FUNCTION_STUB(sub_82173DF8);
-// fuck
-//GUEST_FUNCTION_STUB(sub_8246EEB8);
