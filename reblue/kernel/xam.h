@@ -101,5 +101,19 @@ namespace kernel {
     uint32_t XamUserGetXUID(uint32_t userIndex, be<uint64_t>* xuid);
 
     void XamUserWriteProfileSettings();
+
+    // Additional stubbed kernel functions
+    void XNotifyDelayUI(uint32_t dwMilliseconds);
+    uint32_t XamLoaderGetLaunchDataSize(be<uint32_t>* size);
+    uint32_t XamLoaderGetLaunchData(void* buffer, uint32_t bufferSize, be<uint32_t>* size);
+    uint32_t XamLoaderSetLaunchData(const void* data, uint32_t size);
+    void XamUserCreateStatsEnumerator();
+    void XamWriteGamerTile();
+    uint32_t XamShowKeyboardUI();
+    uint32_t XamShowGamerCardUIForXUID();
+    uint32_t XamShowMarketplaceUI();
+    uint32_t XamContentGetLicenseMask(uint32_t userIndex, be<uint32_t>* mask);
+    uint32_t XamGetOverlappedResult(XXOVERLAPPED* pOverlapped, be<uint32_t>* result, uint32_t wait);
+    void XMsgCompleteIORequest(XXOVERLAPPED* pOverlapped, uint32_t status, uint32_t extendedError);
 }
 }

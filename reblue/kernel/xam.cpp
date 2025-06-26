@@ -658,3 +658,85 @@ void reblue::kernel::XamUserWriteProfileSettings()
 {
     LOG_UTILITY("!!! STUB !!!");
 }
+
+void reblue::kernel::XNotifyDelayUI(uint32_t dwMilliseconds)
+{
+    // Stub: simply ignore notification delay requests
+    (void)dwMilliseconds;
+}
+
+uint32_t reblue::kernel::XamLoaderGetLaunchDataSize(be<uint32_t>* size)
+{
+    if (size)
+        *size = 0;
+    return 0;
+}
+
+uint32_t reblue::kernel::XamLoaderGetLaunchData(void* buffer, uint32_t bufferSize, be<uint32_t>* size)
+{
+    if (size)
+        *size = 0;
+    if (buffer && bufferSize)
+        memset(buffer, 0, bufferSize);
+    return 0;
+}
+
+uint32_t reblue::kernel::XamLoaderSetLaunchData(const void* data, uint32_t size)
+{
+    (void)data;
+    (void)size;
+    return 0;
+}
+
+void reblue::kernel::XamUserCreateStatsEnumerator()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XamWriteGamerTile()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+uint32_t reblue::kernel::XamShowKeyboardUI()
+{
+    LOG_UTILITY("!!! STUB !!!");
+    return 0;
+}
+
+uint32_t reblue::kernel::XamShowGamerCardUIForXUID()
+{
+    LOG_UTILITY("!!! STUB !!!");
+    return 0;
+}
+
+uint32_t reblue::kernel::XamShowMarketplaceUI()
+{
+    LOG_UTILITY("!!! STUB !!!");
+    return 0;
+}
+
+uint32_t reblue::kernel::XamContentGetLicenseMask(uint32_t userIndex, be<uint32_t>* mask)
+{
+    (void)userIndex;
+    if (mask)
+        *mask = 0;
+    return 0;
+}
+
+uint32_t reblue::kernel::XamGetOverlappedResult(XXOVERLAPPED* pOverlapped, be<uint32_t>* result, uint32_t wait)
+{
+    (void)wait;
+    if (result)
+        *result = 0;
+    return pOverlapped ? pOverlapped->Error : 0;
+}
+
+void reblue::kernel::XMsgCompleteIORequest(XXOVERLAPPED* pOverlapped, uint32_t status, uint32_t extendedError)
+{
+    if (pOverlapped)
+    {
+        pOverlapped->Error = status;
+        pOverlapped->Length = extendedError;
+    }
+}

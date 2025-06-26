@@ -8,6 +8,7 @@
 
 GUEST_FUNCTION_HOOK(__imp__XGetVideoMode, reblue::kernel::VdQueryVideoMode); // XGetVideoMode
 GUEST_FUNCTION_HOOK(__imp__XNotifyGetNext, reblue::kernel::XNotifyGetNext);
+GUEST_FUNCTION_HOOK(__imp__XNotifyDelayUI, reblue::kernel::XNotifyDelayUI);
 GUEST_FUNCTION_HOOK(__imp__XGetGameRegion, reblue::kernel::XGetGameRegion);
 GUEST_FUNCTION_HOOK(__imp__XMsgStartIORequest, reblue::kernel::XMsgStartIORequest);
 GUEST_FUNCTION_HOOK(__imp__XamUserGetSigninState, reblue::kernel::XamUserGetSigninState);
@@ -29,11 +30,17 @@ GUEST_FUNCTION_HOOK(__imp__XamShowDirtyDiscErrorUI, reblue::kernel::XamShowDirty
 GUEST_FUNCTION_HOOK(__imp__XamEnableInactivityProcessing, reblue::kernel::XamEnableInactivityProcessing);
 GUEST_FUNCTION_HOOK(__imp__XamResetInactivity, reblue::kernel::XamResetInactivity);
 GUEST_FUNCTION_HOOK(__imp__XamShowMessageBoxUIEx, reblue::kernel::XamShowMessageBoxUIEx);
+GUEST_FUNCTION_HOOK(__imp__XamShowKeyboardUI, reblue::kernel::XamShowKeyboardUI);
+GUEST_FUNCTION_HOOK(__imp__XamShowGamerCardUIForXUID, reblue::kernel::XamShowGamerCardUIForXUID);
+GUEST_FUNCTION_HOOK(__imp__XamShowMarketplaceUI, reblue::kernel::XamShowMarketplaceUI);
 GUEST_FUNCTION_HOOK(__imp__XGetLanguage, reblue::kernel::XGetLanguage);
 GUEST_FUNCTION_HOOK(__imp__XGetAVPack, reblue::kernel::XGetAVPack);
 GUEST_FUNCTION_HOOK(__imp__XamLoaderTerminateTitle, reblue::kernel::XamLoaderTerminateTitle);
 GUEST_FUNCTION_HOOK(__imp__XamGetExecutionId, reblue::kernel::XamGetExecutionId);
 GUEST_FUNCTION_HOOK(__imp__XamLoaderLaunchTitle, reblue::kernel::XamLoaderLaunchTitle);
+GUEST_FUNCTION_HOOK(__imp__XamLoaderGetLaunchDataSize, reblue::kernel::XamLoaderGetLaunchDataSize);
+GUEST_FUNCTION_HOOK(__imp__XamLoaderGetLaunchData, reblue::kernel::XamLoaderGetLaunchData);
+GUEST_FUNCTION_HOOK(__imp__XamLoaderSetLaunchData, reblue::kernel::XamLoaderSetLaunchData);
 GUEST_FUNCTION_HOOK(__imp__NtOpenFile, reblue::kernel::NtOpenFile);
 GUEST_FUNCTION_HOOK(__imp__RtlInitAnsiString, reblue::kernel::RtlInitAnsiString);
 GUEST_FUNCTION_HOOK(__imp__NtCreateFile, reblue::kernel::NtCreateFile);
@@ -43,6 +50,7 @@ GUEST_FUNCTION_HOOK(__imp__FscSetCacheElementCount, reblue::kernel::FscSetCacheE
 GUEST_FUNCTION_HOOK(__imp__NtWaitForSingleObjectEx, reblue::kernel::NtWaitForSingleObjectEx);
 GUEST_FUNCTION_HOOK(__imp__NtWriteFile, reblue::kernel::NtWriteFile);
 GUEST_FUNCTION_HOOK(__imp__ExGetXConfigSetting, reblue::kernel::ExGetXConfigSetting);
+GUEST_FUNCTION_HOOK(__imp__XamContentGetLicenseMask, reblue::kernel::XamContentGetLicenseMask);
 GUEST_FUNCTION_HOOK(__imp__NtQueryVirtualMemory, reblue::kernel::NtQueryVirtualMemory);
 GUEST_FUNCTION_HOOK(__imp__MmQueryStatistics, reblue::kernel::MmQueryStatistics);
 GUEST_FUNCTION_HOOK(__imp__NtCreateEvent, reblue::kernel::NtCreateEvent);
@@ -141,6 +149,7 @@ GUEST_FUNCTION_HOOK(__imp__NetDll_send, reblue::kernel::NetDll_send);
 GUEST_FUNCTION_HOOK(__imp__NetDll_inet_addr, reblue::kernel::NetDll_inet_addr);
 GUEST_FUNCTION_HOOK(__imp__NetDll___WSAFDIsSet, reblue::kernel::NetDll___WSAFDIsSet);
 GUEST_FUNCTION_HOOK(__imp__XMsgStartIORequestEx, reblue::kernel::XMsgStartIORequestEx);
+GUEST_FUNCTION_HOOK(__imp__XamGetOverlappedResult, reblue::kernel::XamGetOverlappedResult);
 GUEST_FUNCTION_HOOK(__imp__XamInputGetCapabilities, reblue::kernel::XamInputGetCapabilities);
 GUEST_FUNCTION_HOOK(__imp__XamInputGetState, reblue::kernel::XamInputGetState);
 GUEST_FUNCTION_HOOK(__imp__XamInputSetState, reblue::kernel::XamInputSetState);
@@ -182,6 +191,7 @@ GUEST_FUNCTION_HOOK(__imp__IoDeleteDevice, reblue::kernel::IoDeleteDevice);
 GUEST_FUNCTION_HOOK(__imp__ExAllocatePoolTypeWithTag, reblue::kernel::ExAllocatePoolTypeWithTag);
 GUEST_FUNCTION_HOOK(__imp__RtlTimeFieldsToTime, reblue::kernel::RtlTimeFieldsToTime);
 GUEST_FUNCTION_HOOK(__imp__IoCompleteRequest, reblue::kernel::IoCompleteRequest);
+GUEST_FUNCTION_HOOK(__imp__XMsgCompleteIORequest, reblue::kernel::XMsgCompleteIORequest);
 GUEST_FUNCTION_HOOK(__imp__RtlUpcaseUnicodeChar, reblue::kernel::RtlUpcaseUnicodeChar);
 GUEST_FUNCTION_HOOK(__imp__ObIsTitleObject, reblue::kernel::ObIsTitleObject);
 GUEST_FUNCTION_HOOK(__imp__IoCheckShareAccess, reblue::kernel::IoCheckShareAccess);
@@ -219,9 +229,11 @@ GUEST_FUNCTION_HOOK(__imp__XamTaskCloseHandle, reblue::kernel::XamTaskCloseHandl
 GUEST_FUNCTION_HOOK(__imp__XamTaskSchedule, reblue::kernel::XamTaskSchedule);
 GUEST_FUNCTION_HOOK(__imp__XamTaskShouldExit, reblue::kernel::XamTaskShouldExit);
 GUEST_FUNCTION_HOOK(__imp__XamUserCreateAchievementEnumerator, reblue::kernel::XamUserCreateAchievementEnumerator);
+GUEST_FUNCTION_HOOK(__imp__XamUserCreateStatsEnumerator, reblue::kernel::XamUserCreateStatsEnumerator);
 GUEST_FUNCTION_HOOK(__imp__XamUserGetName, reblue::kernel::XamUserGetName);
 GUEST_FUNCTION_HOOK(__imp__XamUserGetXUID, reblue::kernel::XamUserGetXUID);
 GUEST_FUNCTION_HOOK(__imp__XamUserWriteProfileSettings, reblue::kernel::XamUserWriteProfileSettings);
+GUEST_FUNCTION_HOOK(__imp__XamWriteGamerTile, reblue::kernel::XamWriteGamerTile);
 GUEST_FUNCTION_HOOK(__imp__XeKeysConsolePrivateKeySign, reblue::kernel::XeKeysConsolePrivateKeySign);
 GUEST_FUNCTION_HOOK(__imp__XeKeysConsoleSignatureVerification, reblue::kernel::XeKeysConsoleSignatureVerification);
 GUEST_FUNCTION_HOOK(__imp__XexLoadImageHeaders, reblue::kernel::XexLoadImageHeaders);
