@@ -1,7 +1,6 @@
 [main]
 file_path = "../private/default.xex"
 out_directory_path = "../ppc"
-switch_table_file_path = "jump_table.toml"
 
 skip_lr = true
 skip_msr = true
