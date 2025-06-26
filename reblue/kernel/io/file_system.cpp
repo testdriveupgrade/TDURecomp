@@ -413,17 +413,17 @@ std::filesystem::path FileSystem::ResolvePath(const std::string_view& path, bool
     return std::u8string_view((const char8_t*)builtPath.c_str());
 }
 
-GUEST_FUNCTION_HOOK(sub_8248B780, XCreateFileA);
-GUEST_FUNCTION_HOOK(sub_8248DC60, XFindFirstFileA);
-GUEST_FUNCTION_HOOK(sub_8248DCF0, XFindNextFileA);
-GUEST_FUNCTION_HOOK(sub_826E19C8, XGetFileAttributesA);
-GUEST_FUNCTION_HOOK(sub_8248CDA8, XGetFileSizeA);
-GUEST_FUNCTION_HOOK(sub_8248E688, XGetFileSizeExA);
-GUEST_FUNCTION_HOOK(sub_8248CBF8, XReadFile);
+// GUEST_FUNCTION_HOOK(sub_8248B780, XCreateFileA);
+// GUEST_FUNCTION_HOOK(sub_8248DC60, XFindFirstFileA);
+// GUEST_FUNCTION_HOOK(sub_8248DCF0, XFindNextFileA);
+// GUEST_FUNCTION_HOOK(sub_826E19C8, XGetFileAttributesA);
+// GUEST_FUNCTION_HOOK(sub_8248CDA8, XGetFileSizeA);
+// GUEST_FUNCTION_HOOK(sub_8248E688, XGetFileSizeExA);
+// GUEST_FUNCTION_HOOK(sub_8248CBF8, XReadFile);
 // GUEST_FUNCTION_HOOK(sub_831CDF40, XReadFileEx);
-GUEST_FUNCTION_HOOK(sub_8248B3B8, XSetFilePointer);
-GUEST_FUNCTION_HOOK(sub_8272EF10, XSetFilePointerEx);
-GUEST_FUNCTION_HOOK(sub_8248B500, XWriteFile);
+// GUEST_FUNCTION_HOOK(sub_8248B3B8, XSetFilePointer);
+// GUEST_FUNCTION_HOOK(sub_8272EF10, XSetFilePointerEx);
+// GUEST_FUNCTION_HOOK(sub_8248B500, XWriteFile);
 
 // XMountUtilityDrive
 GUEST_FUNCTION_STUB(sub_8248CB00);

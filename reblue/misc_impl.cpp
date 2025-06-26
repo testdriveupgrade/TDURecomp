@@ -31,10 +31,10 @@ void GlobalMemoryStatusImpl(XLPMEMORYSTATUS lpMemoryStatus)
     lpMemoryStatus->dwAvailVirtual = 0x20000000;
 }
 
-GUEST_FUNCTION_HOOK(sub_82274140, GuestThread::SetThreadName);
+// GUEST_FUNCTION_HOOK(sub_82274140, GuestThread::SetThreadName);
 
 //#ifdef _WIN32
-GUEST_FUNCTION_HOOK(sub_8248D058, OutputDebugStringA);
+// GUEST_FUNCTION_HOOK(sub_8248D058, OutputDebugStringA);
 //void guest_output_debug_string(const char* fmt)  
 //{  
 //   LOG_UTILITY(fmt);  
@@ -44,11 +44,11 @@ GUEST_FUNCTION_HOOK(sub_8248D058, OutputDebugStringA);
 //GUEST_FUNCTION_STUB(sub_82BD4CA8);
 //#endif
 //
-GUEST_FUNCTION_HOOK(sub_824665A0, QueryPerformanceCounterImpl);
-GUEST_FUNCTION_HOOK(sub_82466568, QueryPerformanceFrequencyImpl);
-GUEST_FUNCTION_HOOK(sub_8248D098, GetTickCountImpl);
+// GUEST_FUNCTION_HOOK(sub_824665A0, QueryPerformanceCounterImpl);
+// GUEST_FUNCTION_HOOK(sub_82466568, QueryPerformanceFrequencyImpl);
+// GUEST_FUNCTION_HOOK(sub_8248D098, GetTickCountImpl);
 
-GUEST_FUNCTION_HOOK(sub_8248CED0, GlobalMemoryStatusImpl);
+// GUEST_FUNCTION_HOOK(sub_8248CED0, GlobalMemoryStatusImpl);
 //
 //// sprintf
 //PPC_FUNC(sub_82BD4AE8)
