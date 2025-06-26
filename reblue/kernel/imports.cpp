@@ -230,18 +230,18 @@ GUEST_FUNCTION_HOOK(__imp__IoSynchronousDeviceIoControlRequest, reblue::kernel::
 GUEST_FUNCTION_HOOK(__imp__ObOpenObjectByName, reblue::kernel::ObOpenObjectByName);
 GUEST_FUNCTION_HOOK(__imp__ObReferenceObjectByName, reblue::kernel::ObReferenceObjectByName);
 
-GUEST_FUNCTION_HOOK(sub_824694A0, reblue::kernel::RtlAllocateHeap);
-GUEST_FUNCTION_HOOK(sub_82469D88, reblue::kernel::RtlFreeHeap);
-GUEST_FUNCTION_HOOK(sub_8246A070, reblue::kernel::RtlReAllocateHeap);
-GUEST_FUNCTION_HOOK(sub_82468738, reblue::kernel::RtlSizeHeap);
-GUEST_FUNCTION_HOOK(sub_82466CC8, reblue::kernel::XAllocMem);
-GUEST_FUNCTION_HOOK(sub_82466D60, reblue::kernel::XFreeMem);
-GUEST_FUNCTION_HOOK(sub_8248D7E8, reblue::kernel::VirtualAlloc);
-GUEST_FUNCTION_HOOK(sub_8248D838, reblue::kernel::VirtualFree);
+// GUEST_FUNCTION_HOOK(sub_824694A0, reblue::kernel::RtlAllocateHeap);
+// GUEST_FUNCTION_HOOK(sub_82469D88, reblue::kernel::RtlFreeHeap);
+// GUEST_FUNCTION_HOOK(sub_8246A070, reblue::kernel::RtlReAllocateHeap);
+// GUEST_FUNCTION_HOOK(sub_82468738, reblue::kernel::RtlSizeHeap);
+// GUEST_FUNCTION_HOOK(sub_82466CC8, reblue::kernel::XAllocMem);
+// GUEST_FUNCTION_HOOK(sub_82466D60, reblue::kernel::XFreeMem);
+// GUEST_FUNCTION_HOOK(sub_8248D7E8, reblue::kernel::VirtualAlloc);
+// GUEST_FUNCTION_HOOK(sub_8248D838, reblue::kernel::VirtualFree);
 // native memory operations
-GUEST_FUNCTION_HOOK(sub_826C0480, memmove);
-GUEST_FUNCTION_HOOK(sub_826BF770, memcpy);
-GUEST_FUNCTION_HOOK(sub_826BFCF0, memset);
+// GUEST_FUNCTION_HOOK(sub_826C0480, memmove);
+// GUEST_FUNCTION_HOOK(sub_826BF770, memcpy);
+// GUEST_FUNCTION_HOOK(sub_826BFCF0, memset);
 
 
 
