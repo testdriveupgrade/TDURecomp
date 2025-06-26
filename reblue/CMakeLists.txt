@@ -74,19 +74,19 @@ set(REBLUE_CPU_CXX_SOURCES
     "cpu/guest_thread.cpp"
 )
 
-set(REBLUE_GPU_CXX_SOURCES
-    "gpu/video.cpp"
-    "gpu/imgui/imgui_common.cpp"
-    "gpu/imgui/imgui_font_builder.cpp"
-    "gpu/imgui/imgui_snapshot.cpp"
-    "gpu/rhi/plume_vulkan.cpp"
-)
+#set(REBLUE_GPU_CXX_SOURCES
+#    "gpu/video.cpp"
+#    "gpu/imgui/imgui_common.cpp"
+#    "gpu/imgui/imgui_font_builder.cpp"
+#    "gpu/imgui/imgui_snapshot.cpp"
+#    "gpu/rhi/plume_vulkan.cpp"
+#)
 
-if (UNLEASHED_RECOMP_D3D12)
-   list(APPEND REBLUE_GPU_CXX_SOURCES
-       "gpu/rhi/plume_d3d12.cpp"
-   )
-endif()
+#if (UNLEASHED_RECOMP_D3D12)
+#   list(APPEND REBLUE_GPU_CXX_SOURCES
+#       "gpu/rhi/plume_d3d12.cpp"
+#   )
+#endif()
 
 set(REBLUE_APU_CXX_SOURCES
     "apu/audio.cpp"
@@ -193,7 +193,7 @@ set(REBLUE_CXX_SOURCES
     ${REBLUE_LOCALE_CXX_SOURCES}
     ${REBLUE_OS_CXX_SOURCES}
     ${REBLUE_CPU_CXX_SOURCES}
-    ${REBLUE_GPU_CXX_SOURCES}
+#    ${REBLUE_GPU_CXX_SOURCES}
     ${REBLUE_APU_CXX_SOURCES}
     ${REBLUE_HID_CXX_SOURCES}
     ${REBLUE_UI_CXX_SOURCES}
@@ -376,53 +376,53 @@ BIN2C(TARGET_OBJ reblue SOURCE_FILE "${RESOURCES_SOURCE_PATH}/images/game_icon.b
 BIN2C(TARGET_OBJ reblue SOURCE_FILE "${RESOURCES_SOURCE_PATH}/images/game_icon_night.bmp" DEST_FILE "${RESOURCES_OUTPUT_PATH}/images/game_icon_night.bmp" ARRAY_NAME "g_game_icon_night")
 
 
-function(compile_shader FILE_PATH TARGET_NAME)
-    set(FILE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/gpu/shader/${FILE_PATH}.hlsl)
-    cmake_path(GET FILE_PATH STEM VARIABLE_NAME)
-    if (UNLEASHED_RECOMP_D3D12)
-        add_custom_command(
-            OUTPUT ${FILE_PATH}.dxil.h
-            COMMAND ${DIRECTX_DXC_TOOL} -T ${TARGET_NAME} -HV 2021 -all-resources-bound -Wno-ignored-attributes -Fh ${FILE_PATH}.dxil.h ${FILE_PATH} -Vn g_${VARIABLE_NAME}_dxil
-            DEPENDS ${FILE_PATH}
-        )
-        target_sources(reblue PRIVATE ${FILE_PATH}.dxil.h)
-    endif()
-    add_custom_command(
-        OUTPUT ${FILE_PATH}.spirv.h
-        COMMAND ${DIRECTX_DXC_TOOL} -T ${TARGET_NAME} -HV 2021 -all-resources-bound -spirv -fvk-use-dx-layout ${ARGN} -Fh ${FILE_PATH}.spirv.h ${FILE_PATH} -Vn g_${VARIABLE_NAME}_spirv
-        DEPENDS ${FILE_PATH}
-    )
-    target_sources(reblue PRIVATE ${FILE_PATH}.spirv.h)
-endfunction()
+#function(compile_shader FILE_PATH TARGET_NAME)
+#    set(FILE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/gpu/shader/${FILE_PATH}.hlsl)
+#    cmake_path(GET FILE_PATH STEM VARIABLE_NAME)
+#    if (UNLEASHED_RECOMP_D3D12)
+#        add_custom_command(
+#            OUTPUT ${FILE_PATH}.dxil.h
+#            COMMAND ${DIRECTX_DXC_TOOL} -T ${TARGET_NAME} -HV 2021 -all-resources-bound -Wno-ignored-attributes -Fh ${FILE_PATH}.dxil.h ${FILE_PATH} -Vn g_${VARIABLE_NAME}_dxil
+#            DEPENDS ${FILE_PATH}
+#        )
+#        target_sources(reblue PRIVATE ${FILE_PATH}.dxil.h)
+#    endif()
+#    add_custom_command(
+#        OUTPUT ${FILE_PATH}.spirv.h
+#        COMMAND ${DIRECTX_DXC_TOOL} -T ${TARGET_NAME} -HV 2021 -all-resources-bound -spirv -fvk-use-dx-layout ${ARGN} -Fh ${FILE_PATH}.spirv.h ${FILE_PATH} -Vn g_${VARIABLE_NAME}_spirv
+#        DEPENDS ${FILE_PATH}
+#    )
+#    target_sources(reblue PRIVATE ${FILE_PATH}.spirv.h)
+#endfunction()
 
-function(compile_vertex_shader FILE_PATH)
-    compile_shader(${FILE_PATH} vs_6_0 -fvk-invert-y)
-endfunction()
+#function(compile_vertex_shader FILE_PATH)
+#    compile_shader(${FILE_PATH} vs_6_0 -fvk-invert-y)
+#endfunction()
 
-function(compile_pixel_shader FILE_PATH)
-    compile_shader(${FILE_PATH} ps_6_0)
-endfunction()
+#function(compile_pixel_shader FILE_PATH)
+#    compile_shader(${FILE_PATH} ps_6_0)
+#endfunction()
 
-compile_pixel_shader(blend_color_alpha_ps)
-compile_vertex_shader(copy_vs)
-compile_pixel_shader(copy_color_ps)
-compile_pixel_shader(copy_depth_ps)
-compile_pixel_shader(csd_filter_ps)
-compile_vertex_shader(csd_no_tex_vs)
-compile_vertex_shader(csd_vs)
-compile_pixel_shader(enhanced_motion_blur_ps)
-compile_pixel_shader(gaussian_blur_3x3)
-compile_pixel_shader(gaussian_blur_5x5)
-compile_pixel_shader(gaussian_blur_7x7)
-compile_pixel_shader(gaussian_blur_9x9)
-compile_pixel_shader(gamma_correction_ps)
-compile_pixel_shader(imgui_ps)
-compile_vertex_shader(imgui_vs)
-compile_pixel_shader(movie_ps)
-compile_vertex_shader(movie_vs)
-compile_pixel_shader(resolve_msaa_color_2x)
-compile_pixel_shader(resolve_msaa_color_4x)
-compile_pixel_shader(resolve_msaa_color_8x)
-compile_pixel_shader(resolve_msaa_depth_2x)
-compile_pixel_shader(resolve_msaa_depth_4x)
-compile_pixel_shader(resolve_msaa_depth_8x)
+#compile_pixel_shader(blend_color_alpha_ps)
+#compile_vertex_shader(copy_vs)
+#compile_pixel_shader(copy_color_ps)
+#compile_pixel_shader(copy_depth_ps)
+#compile_pixel_shader(csd_filter_ps)
+#compile_vertex_shader(csd_no_tex_vs)
+#compile_vertex_shader(csd_vs)
+#compile_pixel_shader(enhanced_motion_blur_ps)
+#compile_pixel_shader(gaussian_blur_3x3)
+#compile_pixel_shader(gaussian_blur_5x5)
+#compile_pixel_shader(gaussian_blur_7x7)
+#compile_pixel_shader(gaussian_blur_9x9)
+#compile_pixel_shader(gamma_correction_ps)
+#compile_pixel_shader(imgui_ps)
+#compile_vertex_shader(imgui_vs)
+#compile_pixel_shader(movie_ps)
+#compile_vertex_shader(movie_vs)
+#compile_pixel_shader(resolve_msaa_color_2x)
+#compile_pixel_shader(resolve_msaa_color_4x)
+#compile_pixel_shader(resolve_msaa_color_8x)
+#compile_pixel_shader(resolve_msaa_depth_2x)
+#compile_pixel_shader(resolve_msaa_depth_4x)
+#compile_pixel_shader(resolve_msaa_depth_8x)

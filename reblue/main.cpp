@@ -1,7 +1,7 @@
 #include <stdafx.h>
 #include <cpuid.h>
 #include <cpu/guest_thread.h>
-#include <gpu/video.h>
+//#include <gpu/video.h>
 #include <kernel/function.h>
 #include <kernel/kernel.h>
 #include <kernel/xam.h>
@@ -223,14 +223,14 @@ int main(int argc, char *argv[])
 
     //if (!runInstallerWizard)
     //{
-        if (!Video::CreateHostDevice(sdlVideoDriver, graphicsApiRetry))
-        {
-            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, GameWindow::GetTitle(), Localise("Video_BackendError").c_str(), GameWindow::s_pWindow);
-            std::_Exit(1);
-        }
+        //if (!Video::CreateHostDevice(sdlVideoDriver, graphicsApiRetry))
+        //{
+        //    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, GameWindow::GetTitle(), Localise("Video_BackendError").c_str(), GameWindow::s_pWindow);
+        //    std::_Exit(1);
+        //}
     //}
 
-   Video::StartPipelinePrecompilation();
+   //Video::StartPipelinePrecompilation();
 
     GuestThread::Start({ entry, 0, 0 });
 
