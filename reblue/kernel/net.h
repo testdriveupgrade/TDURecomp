@@ -20,5 +20,12 @@ namespace kernel {
     void NetDll___WSAFDIsSet();
     void NetDll_XNetStartup();
     void NetDll_XNetGetTitleXnAddr();
+    void NetDll_XNetCleanup();
+    void NetDll_XNetRandom();
+    void NetDll_XNetCreateKey();
+    void NetDll_XNetRegisterKey();
+    void NetDll_XNetXnAddrToInAddr();
+    void NetDll_XNetServerToInAddr();
+    void NetDll_XNetTsAddrToInAddr();
 }
 }

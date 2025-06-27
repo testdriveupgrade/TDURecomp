@@ -740,3 +740,9 @@ void reblue::kernel::XMsgCompleteIORequest(XXOVERLAPPED* pOverlapped, uint32_t s
         pOverlapped->Length = extendedError;
     }
 }
+
+void* reblue::kernel::XamGetPrivateEnumStructureFromHandle(uint32_t handle)
+{
+    return GetKernelObject<void>(handle);
+}
+

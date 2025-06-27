@@ -168,6 +168,12 @@ namespace kernel {
 
     void ExLoadedCommandLine();
 
+    // Additional stubs
+    uint32_t XexLoadImage(const char* path, uint32_t typeFlags, uint32_t minVersion, be<uint32_t>* handle);
+    uint32_t XexUnloadImage(uint32_t handle);
+    void XMsgCancelIORequest();
+    uint32_t MmSetAddressProtect(uint32_t guestAddress, uint32_t protect);
+
     uint32_t XGetGameRegion();
 
     uint32_t XMsgStartIORequest(uint32_t App, uint32_t Message, XXOVERLAPPED* lpOverlapped, void* Buffer, uint32_t szBuffer);
@@ -194,6 +200,7 @@ namespace kernel {
     void KeQueryBasePriorityThread();
     uint32_t KeSetAffinityThread(uint32_t Thread, uint32_t Affinity, be<uint32_t>* lpPreviousAffinity);
     uint32_t KeGetCurrentProcessType();
+    void KeSetCurrentProcessType(uint32_t type);
     void ExThreadObjectType();
 
     uint32_t NtReleaseSemaphore(Semaphore* Handle, uint32_t ReleaseCount, int32_t* PreviousCount);
@@ -203,6 +210,8 @@ namespace kernel {
     
     uint32_t NtCreateMutant(be<uint32_t>* handle, void* objAttributes, uint32_t initialOwner);
     uint32_t NtReleaseMutant(Mutant* handle, be<uint32_t>* previousCount);
+    void KeInitializeDpc();
+    uint32_t KeInsertQueueDpc();
 
     void KfReleaseSpinLock(uint32_t* spinLock);
     void KfAcquireSpinLock(uint32_t* spinLock);
@@ -262,6 +271,7 @@ namespace kernel {
         uint32_t CreateOptions
     );
     void NtWriteFile();
+    void NtWriteFileGather();
     void NtSetInformationFile();
     void NtQueryInformationFile();
     void NtQueryVolumeInformationFile();

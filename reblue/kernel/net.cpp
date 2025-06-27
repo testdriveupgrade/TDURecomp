@@ -80,3 +80,38 @@ void reblue::kernel::NetDll_XNetGetTitleXnAddr()
 {
     LOG_UTILITY("!!! STUB !!!");
 }
+
+void reblue::kernel::NetDll_XNetCleanup()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::NetDll_XNetRandom()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::NetDll_XNetCreateKey()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::NetDll_XNetRegisterKey()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::NetDll_XNetXnAddrToInAddr()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::NetDll_XNetServerToInAddr()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::NetDll_XNetTsAddrToInAddr()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
