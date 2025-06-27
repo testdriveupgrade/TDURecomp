@@ -38,6 +38,7 @@ GUEST_FUNCTION_HOOK(__imp__XGetLanguage, reblue::kernel::XGetLanguage);
 GUEST_FUNCTION_HOOK(__imp__XGetAVPack, reblue::kernel::XGetAVPack);
 GUEST_FUNCTION_HOOK(__imp__XamLoaderTerminateTitle, reblue::kernel::XamLoaderTerminateTitle);
 GUEST_FUNCTION_HOOK(__imp__XamGetExecutionId, reblue::kernel::XamGetExecutionId);
+GUEST_FUNCTION_HOOK(__imp__XamGetPrivateEnumStructureFromHandle, reblue::kernel::XamGetPrivateEnumStructureFromHandle);
 GUEST_FUNCTION_HOOK(__imp__XamLoaderLaunchTitle, reblue::kernel::XamLoaderLaunchTitle);
 GUEST_FUNCTION_HOOK(__imp__XamLoaderGetLaunchDataSize, reblue::kernel::XamLoaderGetLaunchDataSize);
 GUEST_FUNCTION_HOOK(__imp__XamLoaderGetLaunchData, reblue::kernel::XamLoaderGetLaunchData);
