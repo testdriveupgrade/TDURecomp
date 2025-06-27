@@ -27,5 +27,15 @@ namespace kernel {
     void NetDll_XNetXnAddrToInAddr();
     void NetDll_XNetServerToInAddr();
     void NetDll_XNetTsAddrToInAddr();
+    void NetDll_XNetInAddrToXnAddr();
+    void NetDll_XNetInAddrToString();
+    void NetDll_XNetUnregisterInAddr();
+    void NetDll_XNetConnect();
+    void NetDll_XNetGetConnectStatus();
+    void NetDll_ioctlsocket();
+    void NetDll_recvfrom();
+    void NetDll_sendto();
+    void NetDll_WSAGetLastError();
+    void XNetLogonGetTitleID();
 }
 }

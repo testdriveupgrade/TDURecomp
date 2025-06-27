@@ -338,6 +338,12 @@ void reblue::kernel::XAudioGetVoiceCategoryVolume()
     LOG_UTILITY("!!! STUB !!!");
 }
 
+uint32_t reblue::kernel::XAudioGetSpeakerConfig()
+{
+    LOG_UTILITY("!!! STUB !!!");
+    return 0;
+}
+
 void reblue::kernel::KeEnableFpuExceptions()
 {
     LOG_UTILITY("!!! STUB !!!");
@@ -1337,6 +1343,15 @@ uint32_t reblue::kernel::ExAllocatePool(uint32_t size)
 void reblue::kernel::ExAllocatePoolTypeWithTag()
 {
     LOG_UTILITY("!!! STUB !!!");
+}
+
+void* reblue::kernel::MmMapIoSpace(uint32_t physicalAddress, uint32_t size, uint32_t protect)
+{
+    LOG_UTILITY("!!! STUB !!!");
+    (void)physicalAddress;
+    (void)size;
+    (void)protect;
+    return g_memory.Translate(0);
 }
 
 uint32_t reblue::kernel::XamAlloc(uint32_t size)

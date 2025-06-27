@@ -108,6 +108,7 @@ namespace kernel {
 
     void XNotifyPositionUI();
     void XAudioGetVoiceCategoryVolume();
+    uint32_t XAudioGetSpeakerConfig();
 
     void RtlTimeFieldsToTime();
 
@@ -313,6 +314,7 @@ namespace kernel {
 
     uint32_t MmQueryAddressProtect(uint32_t guestAddress);
     void MmQueryAllocationSize();
+    void* MmMapIoSpace(uint32_t physicalAddress, uint32_t size, uint32_t protect);
     uint32_t ExAllocatePool(uint32_t size);
     void ExAllocatePoolTypeWithTag();
     uint32_t XamAlloc(uint32_t size);

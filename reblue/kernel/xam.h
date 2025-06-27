@@ -118,5 +118,10 @@ namespace kernel {
 
     // Missing kernel exports implemented as stubs
     void* XamGetPrivateEnumStructureFromHandle(uint32_t handle);
+    void XamSessionRefObjByHandle();
+    void XamSessionCreateHandle();
+    void XamCreateEnumeratorHandle();
+    void XamUserGetMembershipTierFromXUID();
+    void XamUserGetOnlineCountryFromXUID();
 }
 }

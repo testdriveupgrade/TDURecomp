@@ -115,3 +115,53 @@ void reblue::kernel::NetDll_XNetTsAddrToInAddr()
 {
     LOG_UTILITY("!!! STUB !!!");
 }
+
+void reblue::kernel::NetDll_XNetInAddrToXnAddr()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::NetDll_XNetInAddrToString()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::NetDll_XNetUnregisterInAddr()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::NetDll_XNetConnect()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::NetDll_XNetGetConnectStatus()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::NetDll_ioctlsocket()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::NetDll_recvfrom()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::NetDll_sendto()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::NetDll_WSAGetLastError()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XNetLogonGetTitleID()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
