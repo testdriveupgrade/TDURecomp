@@ -745,4 +745,3 @@ void* reblue::kernel::XamGetPrivateEnumStructureFromHandle(uint32_t handle)
 {
     return GetKernelObject<void>(handle);
 }
-
