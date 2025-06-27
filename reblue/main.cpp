@@ -51,32 +51,43 @@ uint32_t LdrLoadModule(const std::filesystem::path &path)
     }
 
     auto* header = reinterpret_cast<const Xex2Header*>(loadResult.data());
-    auto* security = reinterpret_cast<const Xex2SecurityInfo*>(loadResult.data() + header->securityOffset);
+    uint32_t headerSize = byteswap(header->headerSize);
+    uint32_t securityOffset = byteswap(header->securityOffset);
+
+    auto* security = reinterpret_cast<const Xex2SecurityInfo*>(loadResult.data() + securityOffset);
+    uint32_t loadAddress = byteswap(security->loadAddress);
+    uint32_t imageSize = byteswap(security->imageSize);
+
     const auto* fileFormatInfo = reinterpret_cast<const Xex2OptFileFormatInfo*>(getOptHeaderPtr(loadResult.data(), XEX_HEADER_FILE_FORMAT_INFO));
-    auto entry = *reinterpret_cast<const uint32_t*>(getOptHeaderPtr(loadResult.data(), XEX_HEADER_ENTRY_POINT));
-    ByteSwapInplace(entry);
+    uint32_t compressionType = byteswap(fileFormatInfo->compressionType);
+    uint32_t infoSize = byteswap(fileFormatInfo->infoSize);
 
-    auto srcData = loadResult.data() + header->headerSize;
-    auto destData = reinterpret_cast<uint8_t*>(reblue::kernel::g_memory.Translate(security->loadAddress));
+    auto entry = *reinterpret_cast<const big_endian<uint32_t>*>(getOptHeaderPtr(loadResult.data(), XEX_HEADER_ENTRY_POINT));
 
-    if (fileFormatInfo->compressionType == XEX_COMPRESSION_NONE)
+    auto srcData = loadResult.data() + headerSize;
+    auto destData = reinterpret_cast<uint8_t*>(reblue::kernel::g_memory.Translate(loadAddress));
+
+    if (compressionType == XEX_COMPRESSION_NONE)
     {
-        memcpy(destData, srcData, security->imageSize);
+        memcpy(destData, srcData, imageSize);
     }
-    else if (fileFormatInfo->compressionType == XEX_COMPRESSION_BASIC)
+    else if (compressionType == XEX_COMPRESSION_BASIC)
     {
         auto* blocks = reinterpret_cast<const Xex2FileBasicCompressionBlock*>(fileFormatInfo + 1);
-        const size_t numBlocks = (fileFormatInfo->infoSize / sizeof(Xex2FileBasicCompressionInfo)) - 1;
+        const size_t numBlocks = (infoSize / sizeof(Xex2FileBasicCompressionInfo)) - 1;
 
         for (size_t i = 0; i < numBlocks; i++)
         {
-            memcpy(destData, srcData, blocks[i].dataSize);
+            uint32_t dataSize = byteswap(blocks[i].dataSize);
+            uint32_t zeroSize = byteswap(blocks[i].zeroSize);
 
-            srcData += blocks[i].dataSize;
-            destData += blocks[i].dataSize;
+            memcpy(destData, srcData, dataSize);
 
-            memset(destData, 0, blocks[i].zeroSize);
-            destData += blocks[i].zeroSize;
+            srcData += dataSize;
+            destData += dataSize;
+
+            memset(destData, 0, zeroSize);
+            destData += zeroSize;
         }
     }
     else
@@ -86,7 +97,7 @@ uint32_t LdrLoadModule(const std::filesystem::path &path)
 
     auto res = reinterpret_cast<const Xex2ResourceInfo*>(getOptHeaderPtr(loadResult.data(), XEX_HEADER_RESOURCE_INFO));
 
-    g_xdbfWrapper = XDBFWrapper((uint8_t*)reblue::kernel::g_memory.Translate(res->offset.get()), res->sizeOfData);
+    g_xdbfWrapper = XDBFWrapper((uint8_t*)reblue::kernel::g_memory.Translate(res->offset.get()), byteswap(res->sizeOfData));
 
     return entry;
 }
@@ -137,14 +148,14 @@ int main(int argc, char *argv[])
     bool graphicsApiRetry = false;
     const char *sdlVideoDriver = nullptr;
 
-    // bootleg paths
-    std::filesystem::path reblueBinPath = "C:\\x360\\reblue-game\\bin";
+    // Use the executable directory so the debugger can locate D3D12 DLLs
+    std::filesystem::path reblueBinPath = os::process::GetExecutablePath().parent_path();
 
     if (!useDefaultWorkingDirectory)
     {
         // Set the current working directory to the executable's path.
         std::error_code ec;
-        std::filesystem::current_path(os::process::GetExecutablePath().parent_path(), ec);
+        std::filesystem::current_path(reblueBinPath, ec);
     }
 
     Config::Load();
@@ -153,10 +164,15 @@ int main(int argc, char *argv[])
 #if defined(_WIN32) && defined(UNLEASHED_RECOMP_D3D12)
     for (auto& dll : g_D3D12RequiredModules)
     {
-        if (!std::filesystem::exists(reblueBinPath / dll))
+        auto dllPath = reblueBinPath / dll;
+        if (!std::filesystem::exists(dllPath))
         {
             char text[512];
             snprintf(text, sizeof(text), Localise("System_Win32_MissingDLLs").c_str(), dll.data());
+
+            // Log the missing DLL path so the user knows where to copy it.
+            fprintf(stderr, "Missing %s - expected at: %s\n", dll.data(), dllPath.string().c_str());
+
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, GameWindow::GetTitle(), text, GameWindow::s_pWindow);
             std::_Exit(1);
         }
@@ -171,7 +187,7 @@ int main(int argc, char *argv[])
 
     hid::Init();
 
-    std::filesystem::path modulePath = reblueBinPath.append("default.xex");
+    std::filesystem::path modulePath = reblueBinPath / "default.xex";
     bool isGameInstalled = true;// Installer::checkGameInstall(GAME_INSTALL_DIRECTORY, modulePath);
     bool runInstallerWizard = forceInstaller || forceDLCInstaller || !isGameInstalled;
     //if (runInstallerWizard)

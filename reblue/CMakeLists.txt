@@ -1,7 +1,7 @@
 project("reblue")
 
 if (WIN32)
-    option(UNLEASHED_RECOMP_D3D12 "Add D3D12 support for rendering" OFF)
+    option(UNLEASHED_RECOMP_D3D12 "Add D3D12 support for rendering" ON)
 endif()
 
 add_compile_options(
@@ -281,6 +281,9 @@ if (UNLEASHED_RECOMP_D3D12)
     )
     
     find_file(DIRECTX_DXIL_LIBRARY "dxil.dll")
+    file(COPY ${DIRECTX_DXIL_LIBRARY} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+    
+    find_file(DIRECTX_DXIL_LIBRARY "dxcompiler.dll")
     file(COPY ${DIRECTX_DXIL_LIBRARY} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
     target_link_libraries(reblue PRIVATE
