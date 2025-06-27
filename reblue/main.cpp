@@ -25,6 +25,7 @@
 #include <timeapi.h>
 #endif
 
+/*
 #if defined(_WIN32) && defined(UNLEASHED_RECOMP_D3D12)
 static std::array<std::string_view, 3> g_D3D12RequiredModules =
 {
@@ -32,7 +33,7 @@ static std::array<std::string_view, 3> g_D3D12RequiredModules =
     "dxcompiler.dll",
     "dxil.dll"
 };
-#endif
+#endif */
 
 const size_t XMAIOBegin = 0x7FEA0000;
 const size_t XMAIOEnd = XMAIOBegin + 0x0000FFFF;
@@ -44,11 +45,13 @@ std::unordered_map<uint16_t, GuestTexture*> g_xdbfTextureCache;
 uint32_t LdrLoadModule(const std::filesystem::path &path)
 {
     auto loadResult = LoadFile(path);
+    /*
     if (loadResult.empty())
     {
         assert("Failed to load module" && false);
         return 0;
     }
+    */
 
     auto* header = reinterpret_cast<const Xex2Header*>(loadResult.data());
     auto* security = reinterpret_cast<const Xex2SecurityInfo*>(loadResult.data() + header->securityOffset);
@@ -149,7 +152,7 @@ int main(int argc, char *argv[])
 
     Config::Load();
 
-
+/*
 #if defined(_WIN32) && defined(UNLEASHED_RECOMP_D3D12)
     for (auto& dll : g_D3D12RequiredModules)
     {
@@ -162,7 +165,7 @@ int main(int argc, char *argv[])
         }
     }
 #endif
-
+*/
     os::process::ShowConsole();
 
 #ifdef _WIN32
