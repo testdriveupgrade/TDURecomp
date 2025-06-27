@@ -115,5 +115,9 @@ namespace kernel {
     uint32_t XamContentGetLicenseMask(uint32_t userIndex, be<uint32_t>* mask);
     uint32_t XamGetOverlappedResult(XXOVERLAPPED* pOverlapped, be<uint32_t>* result, uint32_t wait);
     void XMsgCompleteIORequest(XXOVERLAPPED* pOverlapped, uint32_t status, uint32_t extendedError);
+
+    // Missing kernel exports implemented as stubs
+    void* XamGetPrivateEnumStructureFromHandle(uint32_t handle);
+    void XMsgCancelIORequest();
 }
 }

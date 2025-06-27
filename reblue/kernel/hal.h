@@ -18,6 +18,7 @@ namespace kernel {
     void VdQueryVideoMode(XVIDEO_MODE* vm);
     void VdGetCurrentDisplayInformation();
     void VdSetDisplayMode();
+    void VdSetDisplayModeOverride();
     void VdSetGraphicsInterruptCallback();
     void VdInitializeEngines();
     void VdIsHSIOTrainingSucceeded();
@@ -36,6 +37,7 @@ namespace kernel {
     void IoCheckShareAccess();
     void IoSetShareAccess();
     void IoRemoveShareAccess();
+    void IoDismountVolume();
     void IoDismountVolumeByFileHandle();
     void IoDismountVolumeByName();
     void IoSynchronousDeviceIoControlRequest();
