@@ -148,14 +148,14 @@ int main(int argc, char *argv[])
     bool graphicsApiRetry = false;
     const char *sdlVideoDriver = nullptr;
 
-    // bootleg paths
-    std::filesystem::path reblueBinPath = "C:\\x360\\reblue-game\\bin";
+    // Use the executable directory so the debugger can locate D3D12 DLLs
+    std::filesystem::path reblueBinPath = os::process::GetExecutablePath().parent_path();
 
     if (!useDefaultWorkingDirectory)
     {
         // Set the current working directory to the executable's path.
         std::error_code ec;
-        std::filesystem::current_path(os::process::GetExecutablePath().parent_path(), ec);
+        std::filesystem::current_path(reblueBinPath, ec);
     }
 
     Config::Load();
@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
 
     hid::Init();
 
-    std::filesystem::path modulePath = reblueBinPath.append("default.xex");
+    std::filesystem::path modulePath = reblueBinPath / "default.xex";
     bool isGameInstalled = true;// Installer::checkGameInstall(GAME_INSTALL_DIRECTORY, modulePath);
     bool runInstallerWizard = forceInstaller || forceDLCInstaller || !isGameInstalled;
     //if (runInstallerWizard)
