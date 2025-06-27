@@ -320,6 +320,7 @@ GUEST_FUNCTION_STUB(__imp__swprintf);
 #define GUEST__hcgPixelShaderCreateByHlsl sub_82286770
 #define GUEST__D3DDevice_SetGammaRamp sub_82473A78
 
+/*
 // GUEST_FUNCTION_HOOK(GUEST__hcgVertexShaderCreateByHlsl, reblue::gpu::CreateMovieVertexShader);
 // GUEST_FUNCTION_HOOK(GUEST__hcgPixelShaderCreateByHlsl, reblue::gpu::CreateMoviePixelShader);
 
@@ -382,3 +383,4 @@ GUEST_FUNCTION_STUB(GUEST__D3DDevice_SetPrediction); // D3DDevice_SetPredication
 GUEST_FUNCTION_STUB(GUEST__D3DXFilterTexture); // D3DXFilterTexture
 GUEST_FUNCTION_STUB(GUEST__D3DDevice_Release); // D3DDevice_Release
 GUEST_FUNCTION_STUB(sub_82466ED8);
+*/
