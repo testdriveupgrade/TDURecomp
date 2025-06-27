@@ -1,7 +1,7 @@
 project("reblue")
 
 if (WIN32)
-    option(UNLEASHED_RECOMP_D3D12 "Add D3D12 support for rendering" ON)
+    option(UNLEASHED_RECOMP_D3D12 "Add D3D12 support for rendering" OFF)
 endif()
 
 add_compile_options(
