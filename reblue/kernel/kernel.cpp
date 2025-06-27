@@ -4,6 +4,7 @@
 #include <user/config.h>
 
 reblue::kernel::Mutex reblue::kernel::g_kernelLock;
+static uint32_t g_currentProcessType = 1;
 
 void reblue::kernel::DestroyKernelObject(KernelObject* obj)
 {
@@ -179,6 +180,17 @@ void reblue::kernel::KeInitializeSemaphore(XKSEMAPHORE* semaphore, uint32_t coun
     auto* object = QueryKernelObject<Semaphore>(semaphore->Header);
 }
 
+void reblue::kernel::KeInitializeDpc()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+uint32_t reblue::kernel::KeInsertQueueDpc()
+{
+    LOG_UTILITY("!!! STUB !!!");
+    return 0;
+}
+
 uint32_t reblue::kernel::KeTryToAcquireSpinLockAtRaisedIrql(uint32_t* spinLock)
 {
     std::atomic_ref spinLockRef(*spinLock);
@@ -237,7 +249,12 @@ void reblue::kernel::KeBugCheckEx()
 
 uint32_t reblue::kernel::KeGetCurrentProcessType()
 {
-    return 1;
+    return g_currentProcessType;
+}
+
+void reblue::kernel::KeSetCurrentProcessType(uint32_t type)
+{
+    g_currentProcessType = type;
 }
 
 void reblue::kernel::ExThreadObjectType()
@@ -614,6 +631,26 @@ uint32_t reblue::kernel::XMsgStartIORequest(uint32_t App, uint32_t Message, XXOV
     return STATUS_SUCCESS;
 }
 
+void reblue::kernel::XMsgCancelIORequest()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+uint32_t reblue::kernel::XexLoadImage(const char* path, uint32_t typeFlags, uint32_t minVersion, be<uint32_t>* handle)
+{
+    LOG_UTILITY("!!! STUB !!!");
+    if (handle)
+        *handle = 0;
+    return STATUS_SUCCESS;
+}
+
+uint32_t reblue::kernel::XexUnloadImage(uint32_t handle)
+{
+    LOG_UTILITY("!!! STUB !!!");
+    (void)handle;
+    return STATUS_SUCCESS;
+}
+
 uint32_t reblue::kernel::XGetLanguage()
 {
     return (uint32_t)::Config::Language.Value;
@@ -915,6 +952,11 @@ uint32_t reblue::kernel::NtCreateFile(be<uint32_t>* FileHandle, uint32_t Desired
 }
 
 void reblue::kernel::NtWriteFile()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::NtWriteFileGather()
 {
     LOG_UTILITY("!!! STUB !!!");
 }
@@ -1273,6 +1315,12 @@ uint32_t reblue::kernel::MmAllocatePhysicalMemoryEx(uint32_t flags, uint32_t siz
 uint32_t reblue::kernel::MmQueryAddressProtect(uint32_t guestAddress)
 {
     return PAGE_READWRITE;
+}
+
+uint32_t reblue::kernel::MmSetAddressProtect(uint32_t guestAddress, uint32_t protect)
+{
+    LOGF_UTILITY("MmSetAddressProtect: 0x{:x}, 0x{:x}", guestAddress, protect);
+    return STATUS_SUCCESS;
 }
 
 void reblue::kernel::MmQueryAllocationSize()

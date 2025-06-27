@@ -86,6 +86,11 @@ void reblue::kernel::VdSetDisplayMode()
     LOG_UTILITY("!!! STUB !!!");
 }
 
+void reblue::kernel::VdSetDisplayModeOverride()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
 void reblue::kernel::VdSetGraphicsInterruptCallback()
 {
     LOG_UTILITY("!!! STUB !!!");
@@ -157,6 +162,11 @@ void reblue::kernel::IoSetShareAccess()
 }
 
 void reblue::kernel::IoRemoveShareAccess()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::IoDismountVolume()
 {
     LOG_UTILITY("!!! STUB !!!");
 }
