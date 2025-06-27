@@ -283,6 +283,9 @@ if (UNLEASHED_RECOMP_D3D12)
     find_file(DIRECTX_DXIL_LIBRARY "dxil.dll")
     file(COPY ${DIRECTX_DXIL_LIBRARY} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
+    find_file(DIRECTX_DXCOMPILER_LIBRARY "dxcompiler.dll")
+    file(COPY ${DIRECTX_DXCOMPILER_LIBRARY} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
     target_link_libraries(reblue PRIVATE
         Microsoft::DirectX-Headers 
         Microsoft::DirectX-Guids 
