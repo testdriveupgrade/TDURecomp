@@ -14,7 +14,7 @@
 std::ofstream g_audioDumpStream;
 #endif
 
-uint32_t XAudioRegisterRenderDriverClient(be<uint32_t>* callback, be<uint32_t>* driver)
+uint32_t XAudioRegisterRenderDriverClient(big_endian<uint32_t>* callback, big_endian<uint32_t>* driver)
 {
 #ifdef AUDIO_DUMP_SAMPLES_PATH
     g_audioDumpStream.open(AUDIO_DUMP_SAMPLES_PATH, std::ios::binary);

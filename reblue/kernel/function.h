@@ -57,7 +57,7 @@ struct ArgTranslator
             }
         }
 
-        return *reinterpret_cast<be<uint32_t>*>(base + ctx.r1.u32 + 0x54 + ((arg - 8) * 8));
+        return *reinterpret_cast<big_endian<uint32_t>*>(base + ctx.r1.u32 + 0x54 + ((arg - 8) * 8));
     }
 
     static double GetPrecisionArgumentValue(const PPCContext& ctx, uint8_t* base, size_t arg) noexcept
