@@ -51,32 +51,43 @@ uint32_t LdrLoadModule(const std::filesystem::path &path)
     }
 
     auto* header = reinterpret_cast<const Xex2Header*>(loadResult.data());
-    auto* security = reinterpret_cast<const Xex2SecurityInfo*>(loadResult.data() + header->securityOffset);
+    uint32_t headerSize = byteswap(header->headerSize);
+    uint32_t securityOffset = byteswap(header->securityOffset);
+
+    auto* security = reinterpret_cast<const Xex2SecurityInfo*>(loadResult.data() + securityOffset);
+    uint32_t loadAddress = byteswap(security->loadAddress);
+    uint32_t imageSize = byteswap(security->imageSize);
+
     const auto* fileFormatInfo = reinterpret_cast<const Xex2OptFileFormatInfo*>(getOptHeaderPtr(loadResult.data(), XEX_HEADER_FILE_FORMAT_INFO));
-    auto entry = *reinterpret_cast<const uint32_t*>(getOptHeaderPtr(loadResult.data(), XEX_HEADER_ENTRY_POINT));
-    ByteSwapInplace(entry);
+    uint32_t compressionType = byteswap(fileFormatInfo->compressionType);
+    uint32_t infoSize = byteswap(fileFormatInfo->infoSize);
 
-    auto srcData = loadResult.data() + header->headerSize;
-    auto destData = reinterpret_cast<uint8_t*>(reblue::kernel::g_memory.Translate(security->loadAddress));
+    auto entry = *reinterpret_cast<const big_endian<uint32_t>*>(getOptHeaderPtr(loadResult.data(), XEX_HEADER_ENTRY_POINT));
 
-    if (fileFormatInfo->compressionType == XEX_COMPRESSION_NONE)
+    auto srcData = loadResult.data() + headerSize;
+    auto destData = reinterpret_cast<uint8_t*>(reblue::kernel::g_memory.Translate(loadAddress));
+
+    if (compressionType == XEX_COMPRESSION_NONE)
     {
-        memcpy(destData, srcData, security->imageSize);
+        memcpy(destData, srcData, imageSize);
     }
-    else if (fileFormatInfo->compressionType == XEX_COMPRESSION_BASIC)
+    else if (compressionType == XEX_COMPRESSION_BASIC)
     {
         auto* blocks = reinterpret_cast<const Xex2FileBasicCompressionBlock*>(fileFormatInfo + 1);
-        const size_t numBlocks = (fileFormatInfo->infoSize / sizeof(Xex2FileBasicCompressionInfo)) - 1;
+        const size_t numBlocks = (infoSize / sizeof(Xex2FileBasicCompressionInfo)) - 1;
 
         for (size_t i = 0; i < numBlocks; i++)
         {
-            memcpy(destData, srcData, blocks[i].dataSize);
+            uint32_t dataSize = byteswap(blocks[i].dataSize);
+            uint32_t zeroSize = byteswap(blocks[i].zeroSize);
 
-            srcData += blocks[i].dataSize;
-            destData += blocks[i].dataSize;
+            memcpy(destData, srcData, dataSize);
 
-            memset(destData, 0, blocks[i].zeroSize);
-            destData += blocks[i].zeroSize;
+            srcData += dataSize;
+            destData += dataSize;
+
+            memset(destData, 0, zeroSize);
+            destData += zeroSize;
         }
     }
     else
@@ -86,7 +97,7 @@ uint32_t LdrLoadModule(const std::filesystem::path &path)
 
     auto res = reinterpret_cast<const Xex2ResourceInfo*>(getOptHeaderPtr(loadResult.data(), XEX_HEADER_RESOURCE_INFO));
 
-    g_xdbfWrapper = XDBFWrapper((uint8_t*)reblue::kernel::g_memory.Translate(res->offset.get()), res->sizeOfData);
+    g_xdbfWrapper = XDBFWrapper((uint8_t*)reblue::kernel::g_memory.Translate(res->offset.get()), byteswap(res->sizeOfData));
 
     return entry;
 }
