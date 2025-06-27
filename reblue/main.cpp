@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
     const char *sdlVideoDriver = nullptr;
 
     // bootleg paths
-    std::filesystem::path reblueBinPath = "c:\\x360\\reblue-game\\bin";
+    std::filesystem::path reblueBinPath = "C:\\x360\\reblue-game\\bin";
 
     if (!useDefaultWorkingDirectory)
     {
@@ -207,8 +207,8 @@ int main(int argc, char *argv[])
     const auto gameContent = reblue::kernel::XamMakeContent(XCONTENTTYPE_RESERVED, "Game");
     const auto cacheContent = reblue::kernel::XamMakeContent(XCONTENTTYPE_RESERVED, "Cache");
 
-    reblue::kernel::XamRegisterContent(gameContent, "c:/x360/reblue-game/game");
-    reblue::kernel::XamRegisterContent(cacheContent, "c:/x360/reblue-game/cache");
+    reblue::kernel::XamRegisterContent(gameContent, "C:/x360/reblue-game/game");
+    reblue::kernel::XamRegisterContent(cacheContent, "C:/x360/reblue-game/cache");
 
     // Mount game
     reblue::kernel::XamContentCreateEx(0, "game", &gameContent, OPEN_EXISTING, nullptr, nullptr, 0, 0, nullptr);
