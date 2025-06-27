@@ -745,8 +745,3 @@ void* reblue::kernel::XamGetPrivateEnumStructureFromHandle(uint32_t handle)
 {
     return GetKernelObject<void>(handle);
 }
-
-void reblue::kernel::XMsgCancelIORequest()
-{
-    LOG_UTILITY("!!! STUB !!!");
-}

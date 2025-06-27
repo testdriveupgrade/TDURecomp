@@ -197,6 +197,7 @@ GUEST_FUNCTION_HOOK(__imp__ExAllocatePoolTypeWithTag, reblue::kernel::ExAllocate
 GUEST_FUNCTION_HOOK(__imp__RtlTimeFieldsToTime, reblue::kernel::RtlTimeFieldsToTime);
 GUEST_FUNCTION_HOOK(__imp__IoCompleteRequest, reblue::kernel::IoCompleteRequest);
 GUEST_FUNCTION_HOOK(__imp__XMsgCompleteIORequest, reblue::kernel::XMsgCompleteIORequest);
+GUEST_FUNCTION_HOOK(__imp__XMsgCancelIORequest, reblue::kernel::XMsgCancelIORequest);
 GUEST_FUNCTION_HOOK(__imp__RtlUpcaseUnicodeChar, reblue::kernel::RtlUpcaseUnicodeChar);
 GUEST_FUNCTION_HOOK(__imp__ObIsTitleObject, reblue::kernel::ObIsTitleObject);
 GUEST_FUNCTION_HOOK(__imp__IoCheckShareAccess, reblue::kernel::IoCheckShareAccess);

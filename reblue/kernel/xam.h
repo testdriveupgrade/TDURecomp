@@ -118,6 +118,5 @@ namespace kernel {
 
     // Missing kernel exports implemented as stubs
     void* XamGetPrivateEnumStructureFromHandle(uint32_t handle);
-    void XMsgCancelIORequest();
 }
 }
