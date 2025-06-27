@@ -41,7 +41,15 @@ namespace endian_util {
         T value{};
 
         constexpr big_endian() = default;
-        constexpr big_endian(T v) { set(v); }
+        constexpr big_endian(T v) noexcept { set(v); }
+
+        constexpr big_endian& operator=(T v) noexcept
+        {
+            set(v);
+            return *this;
+        }
+
+        constexpr operator T() const noexcept { return get(); }
 
         constexpr void set(T v) noexcept
         {
