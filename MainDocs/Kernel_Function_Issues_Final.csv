@@ -1,0 +1,19 @@
+Function Name,Likely File,Type,Suggested Solution
+XamGetPrivateEnumStructureFromHandle,xam.cpp,Stub (XAM Enum),Add PPC_FUNC_THROW(XamGetPrivateEnumStructureFromHandle)
+NetDll_XNetInAddrToXnAddr,netdll.cpp,Network API,Add PPC_FUNC_THROW(NetDll_XNetInAddrToXnAddr)
+NetDll_XNetInAddrToString,netdll.cpp,Network API,Add PPC_FUNC_THROW(NetDll_XNetInAddrToString)
+NetDll_XNetUnregisterInAddr,netdll.cpp,Network API,Add PPC_FUNC_THROW(NetDll_XNetUnregisterInAddr)
+NetDll_XNetConnect,netdll.cpp,Network API,Add PPC_FUNC_THROW(NetDll_XNetConnect)
+NetDll_XNetGetConnectStatus,netdll.cpp,Network API,Add PPC_FUNC_THROW(NetDll_XNetGetConnectStatus)
+NetDll_ioctlsocket,netdll.cpp,Network API,Add PPC_FUNC_THROW(NetDll_ioctlsocket)
+NetDll_recvfrom,netdll.cpp,Network API,Add PPC_FUNC_THROW(NetDll_recvfrom)
+NetDll_sendto,netdll.cpp,Network API,Add PPC_FUNC_THROW(NetDll_sendto)
+NetDll_WSAGetLastError,netdll.cpp,Network API,Add PPC_FUNC_THROW(NetDll_WSAGetLastError)
+XamSessionRefObjByHandle,xam.cpp,Session Mgmt,Add PPC_FUNC_THROW(XamSessionRefObjByHandle)
+XamSessionCreateHandle,xam.cpp,Session Mgmt,Add PPC_FUNC_THROW(XamSessionCreateHandle)
+XNetLogonGetTitleID,netdll.cpp,Title Info,Add PPC_FUNC_THROW(XNetLogonGetTitleID)
+XamCreateEnumeratorHandle,xam.cpp,Enumeration API,Add PPC_FUNC_THROW(XamCreateEnumeratorHandle)
+XamUserGetMembershipTierFromXUID,xam.cpp,User API,Add PPC_FUNC_THROW(XamUserGetMembershipTierFromXUID)
+XamUserGetOnlineCountryFromXUID,xam.cpp,User API,Add PPC_FUNC_THROW(XamUserGetOnlineCountryFromXUID)
+MmMapIoSpace,kernel.cpp,Memory Mapping,Add PPC_FUNC_THROW(MmMapIoSpace) or return dummy memory ptr
+XAudioGetSpeakerConfig,xaudio.cpp,Audio API,Add PPC_FUNC_THROW(XAudioGetSpeakerConfig) or return default config
