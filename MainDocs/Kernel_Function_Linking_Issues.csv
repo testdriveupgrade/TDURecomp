@@ -1,0 +1,19 @@
+Kernel Function,Referenced Files,Recommended Solution
+__imp__XamGetPrivateEnumStructureFromHandle,ppc_func_mapping.cpp / ppc_recomp.35.cpp / ppc_recomp.48.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__XMsgCancelIORequest,ppc_func_mapping.cpp / ppc_recomp.35.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__MmSetAddressProtect,ppc_func_mapping.cpp / ppc_recomp.34.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__XexUnloadImage,ppc_func_mapping.cpp / ppc_recomp.34.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__XexLoadImage,ppc_func_mapping.cpp / ppc_recomp.34.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__IoDismountVolume,ppc_func_mapping.cpp / ppc_recomp.34.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__NtWriteFileGather,ppc_func_mapping.cpp / ppc_recomp.35.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__KeInsertQueueDpc,ppc_func_mapping.cpp / ppc_recomp.33.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__KeInitializeDpc,ppc_func_mapping.cpp / ppc_recomp.33.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__VdSetDisplayModeOverride,ppc_func_mapping.cpp / ppc_recomp.33.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__KeSetCurrentProcessType,ppc_func_mapping.cpp / ppc_recomp.34.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__NetDll_XNetCleanup,ppc_func_mapping.cpp / ppc_recomp.41.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__NetDll_XNetRandom,ppc_func_mapping.cpp / ppc_recomp.41.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__NetDll_XNetCreateKey,ppc_func_mapping.cpp / ppc_recomp.41.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__NetDll_XNetRegisterKey,ppc_func_mapping.cpp / ppc_recomp.41.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__NetDll_XNetXnAddrToInAddr,ppc_func_mapping.cpp / ppc_recomp.41.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__NetDll_XNetServerToInAddr,ppc_func_mapping.cpp / ppc_recomp.41.cpp,Stub or implement in kernel.cpp and ensure it's linked properly
+__imp__NetDll_XNetTsAddrToInAddr,ppc_func_mapping.cpp / ppc_recomp.41.cpp,Stub or implement in kernel.cpp and ensure it's linked properly

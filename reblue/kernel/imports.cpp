@@ -6,6 +6,7 @@
 #include <gpu/video.h>
 #include <os/logger.h>
 
+
 GUEST_FUNCTION_HOOK(__imp__XGetVideoMode, reblue::kernel::VdQueryVideoMode); // XGetVideoMode
 GUEST_FUNCTION_HOOK(__imp__XNotifyGetNext, reblue::kernel::XNotifyGetNext);
 GUEST_FUNCTION_HOOK(__imp__XNotifyDelayUI, reblue::kernel::XNotifyDelayUI);

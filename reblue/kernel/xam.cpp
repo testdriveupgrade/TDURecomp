@@ -729,7 +729,7 @@ uint32_t reblue::kernel::XamGetOverlappedResult(XXOVERLAPPED* pOverlapped, be<ui
     (void)wait;
     if (result)
         *result = 0;
-    return pOverlapped ? pOverlapped->Error : 0;
+    return pOverlapped ? pOverlapped->Error.get() : 0;
 }
 
 void reblue::kernel::XMsgCompleteIORequest(XXOVERLAPPED* pOverlapped, uint32_t status, uint32_t extendedError)
