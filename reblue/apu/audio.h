@@ -11,6 +11,6 @@ void XAudioInitializeSystem();
 void XAudioRegisterClient(PPCFunc* callback, uint32_t param);
 void XAudioSubmitFrame(void* samples);
 
-uint32_t XAudioRegisterRenderDriverClient(be<uint32_t>* callback, be<uint32_t>* driver);
+uint32_t XAudioRegisterRenderDriverClient(big_endian<uint32_t>* callback, big_endian<uint32_t>* driver);
 uint32_t XAudioUnregisterRenderDriverClient(uint32_t driver);
 uint32_t XAudioSubmitRenderDriverFrame(uint32_t driver, void* samples);

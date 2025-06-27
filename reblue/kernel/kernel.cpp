@@ -48,12 +48,12 @@ bool reblue::kernel::IsInvalidKernelObject(void* obj)
     return obj == GetInvalidKernelObject();
 }
 
-uint32_t reblue::kernel::GuestTimeoutToMilliseconds(be<int64_t>* timeout)
+uint32_t reblue::kernel::GuestTimeoutToMilliseconds(big_endian<int64_t>* timeout)
 {
     return timeout ? (*timeout * -1) / 10000 : INFINITE;
 }
 
-uint32_t reblue::kernel::KeDelayExecutionThread(uint32_t WaitMode, bool Alertable, be<int64_t>* Timeout)
+uint32_t reblue::kernel::KeDelayExecutionThread(uint32_t WaitMode, bool Alertable, big_endian<int64_t>* Timeout)
 {
     // We don't do async file reads.
     if (Alertable)
@@ -73,7 +73,7 @@ uint32_t reblue::kernel::KeDelayExecutionThread(uint32_t WaitMode, bool Alertabl
     return STATUS_SUCCESS;
 }
 
-void reblue::kernel::KeQuerySystemTime(be<uint64_t>* time)
+void reblue::kernel::KeQuerySystemTime(big_endian<uint64_t>* time)
 {
     constexpr int64_t FILETIME_EPOCH_DIFFERENCE = 116444736000000000LL;
 
@@ -86,7 +86,7 @@ void reblue::kernel::KeQuerySystemTime(be<uint64_t>* time)
     *time = currentTime100ns;
 }
 
-uint32_t reblue::kernel::KeWaitForMultipleObjects(uint32_t Count, xpointer<XDISPATCHER_HEADER>* Objects, uint32_t WaitType, uint32_t WaitReason, uint32_t WaitMode, uint32_t Alertable, be<int64_t>* Timeout)
+uint32_t reblue::kernel::KeWaitForMultipleObjects(uint32_t Count, xpointer<XDISPATCHER_HEADER>* Objects, uint32_t WaitType, uint32_t WaitReason, uint32_t WaitMode, uint32_t Alertable, big_endian<int64_t>* Timeout)
 {
     const uint64_t timeout = GuestTimeoutToMilliseconds(Timeout);
 
@@ -234,7 +234,7 @@ void reblue::kernel::KeQueryBasePriorityThread()
     LOG_UTILITY("!!! STUB !!!");
 }
 
-uint32_t reblue::kernel::KeSetAffinityThread(uint32_t Thread, uint32_t Affinity, be<uint32_t>* lpPreviousAffinity)
+uint32_t reblue::kernel::KeSetAffinityThread(uint32_t Thread, uint32_t Affinity, big_endian<uint32_t>* lpPreviousAffinity)
 {
     if (lpPreviousAffinity)
         *lpPreviousAffinity = 2;
@@ -312,7 +312,7 @@ uint32_t reblue::kernel::KiApcNormalRoutineNop()
     return 0;
 }
 
-uint32_t reblue::kernel::XAudioGetVoiceCategoryVolumeChangeMask(uint32_t Driver, be<uint32_t>* Mask)
+uint32_t reblue::kernel::XAudioGetVoiceCategoryVolumeChangeMask(uint32_t Driver, big_endian<uint32_t>* Mask)
 {
     *Mask = 0;
     return 0;
@@ -392,7 +392,7 @@ void reblue::kernel::RtlNtStatusToDosError()
     LOG_UTILITY("!!! STUB !!!");
 }
 
-uint32_t reblue::kernel::RtlUnicodeToMultiByteN(char* MultiByteString, uint32_t MaxBytesInMultiByteString, be<uint32_t>* BytesInMultiByteString, const be<uint16_t>* UnicodeString, uint32_t BytesInUnicodeString)
+uint32_t reblue::kernel::RtlUnicodeToMultiByteN(char* MultiByteString, uint32_t MaxBytesInMultiByteString, big_endian<uint32_t>* BytesInMultiByteString, const big_endian<uint16_t>* UnicodeString, uint32_t BytesInUnicodeString)
 {
     const auto reqSize = BytesInUnicodeString / sizeof(uint16_t);
 
@@ -417,7 +417,7 @@ void reblue::kernel::ObDereferenceObject()
     LOG_UTILITY("!!! STUB !!!");
 }
 
-uint32_t reblue::kernel::ObReferenceObjectByHandle(uint32_t handle, uint32_t objectType, be<uint32_t>* object)
+uint32_t reblue::kernel::ObReferenceObjectByHandle(uint32_t handle, uint32_t objectType, big_endian<uint32_t>* object)
 {
     *object = handle;
     return 0;
@@ -514,7 +514,7 @@ void reblue::kernel::XeCryptSha()
     LOG_UTILITY("!!! STUB !!!");
 }
 
-uint32_t reblue::kernel::RtlMultiByteToUnicodeN(be<uint16_t>* UnicodeString, uint32_t MaxBytesInUnicodeString, be<uint32_t>* BytesInUnicodeString, const char* MultiByteString, uint32_t BytesInMultiByteString)
+uint32_t reblue::kernel::RtlMultiByteToUnicodeN(big_endian<uint16_t>* UnicodeString, uint32_t MaxBytesInUnicodeString, big_endian<uint32_t>* BytesInUnicodeString, const char* MultiByteString, uint32_t BytesInMultiByteString)
 {
     uint32_t length = std::min(MaxBytesInUnicodeString / 2, BytesInMultiByteString);
 
@@ -602,7 +602,7 @@ void reblue::kernel::XexGetModuleHandle()
     LOG_UTILITY("!!! STUB !!!");
 }
 
-uint32_t reblue::kernel::XMsgInProcessCall(uint32_t app, uint32_t message, be<uint32_t>* param1, be<uint32_t>* param2)
+uint32_t reblue::kernel::XMsgInProcessCall(uint32_t app, uint32_t message, big_endian<uint32_t>* param1, big_endian<uint32_t>* param2)
 {
     if (message == 0x7001B)
     {
@@ -642,7 +642,7 @@ void reblue::kernel::XMsgCancelIORequest()
     LOG_UTILITY("!!! STUB !!!");
 }
 
-uint32_t reblue::kernel::XexLoadImage(const char* path, uint32_t typeFlags, uint32_t minVersion, be<uint32_t>* handle)
+uint32_t reblue::kernel::XexLoadImage(const char* path, uint32_t typeFlags, uint32_t minVersion, big_endian<uint32_t>* handle)
 {
     LOG_UTILITY("!!! STUB !!!");
     if (handle)
@@ -672,7 +672,7 @@ uint32_t reblue::kernel::XexCheckExecutablePrivilege()
     return 0;
 }
 
-uint32_t reblue::kernel::ExGetXConfigSetting(uint16_t Category, uint16_t Setting, void* Buffer, uint16_t SizeOfBuffer, be<uint32_t>* RequiredSize)
+uint32_t reblue::kernel::ExGetXConfigSetting(uint16_t Category, uint16_t Setting, void* Buffer, uint16_t SizeOfBuffer, big_endian<uint32_t>* RequiredSize)
 {
     uint32_t data[4]{};
 
@@ -739,7 +739,7 @@ uint32_t reblue::kernel::ExGetXConfigSetting(uint16_t Category, uint16_t Setting
     return 0;
 }
 
-uint32_t reblue::kernel::ExCreateThread(be<uint32_t>* handle, uint32_t stackSize, be<uint32_t>* threadId, uint32_t xApiThreadStartup, uint32_t startAddress, uint32_t startContext, uint32_t creationFlags)
+uint32_t reblue::kernel::ExCreateThread(big_endian<uint32_t>* handle, uint32_t stackSize, big_endian<uint32_t>* threadId, uint32_t xApiThreadStartup, uint32_t startAddress, uint32_t startContext, uint32_t creationFlags)
 {
     LOGF_UTILITY("0x{:X}, 0x{:X}, 0x{:X}, 0x{:X}, 0x{:X}, 0x{:X}, 0x{:X}",
         (intptr_t)handle, stackSize, (intptr_t)threadId, xApiThreadStartup, startAddress, startContext, creationFlags);
@@ -878,7 +878,7 @@ bool reblue::kernel::KeResetEvent(XKEVENT* pEvent)
     return QueryKernelObject<Event>(*pEvent)->Reset();
 }
 
-uint32_t reblue::kernel::KeWaitForSingleObject(XDISPATCHER_HEADER* Object, uint32_t WaitReason, uint32_t WaitMode, bool Alertable, be<int64_t>* Timeout)
+uint32_t reblue::kernel::KeWaitForSingleObject(XDISPATCHER_HEADER* Object, uint32_t WaitReason, uint32_t WaitMode, bool Alertable, big_endian<int64_t>* Timeout)
 {
     const uint32_t timeout = GuestTimeoutToMilliseconds(Timeout);
 
@@ -951,7 +951,7 @@ void reblue::kernel::NtOpenFile()
     LOG_UTILITY("!!! STUB !!!");
 }
 
-uint32_t reblue::kernel::NtCreateFile(be<uint32_t>* FileHandle, uint32_t DesiredAccess, XOBJECT_ATTRIBUTES* Attributes, XIO_STATUS_BLOCK* IoStatusBlock, uint64_t* AllocationSize, uint32_t FileAttributes, uint32_t ShareAccess, uint32_t CreateDisposition, uint32_t CreateOptions)
+uint32_t reblue::kernel::NtCreateFile(big_endian<uint32_t>* FileHandle, uint32_t DesiredAccess, XOBJECT_ATTRIBUTES* Attributes, XIO_STATUS_BLOCK* IoStatusBlock, uint64_t* AllocationSize, uint32_t FileAttributes, uint32_t ShareAccess, uint32_t CreateDisposition, uint32_t CreateOptions)
 {
     LOG_UTILITY("!!! STUB !!!");
     return 0;
@@ -1022,18 +1022,18 @@ uint32_t reblue::kernel::NtSuspendThread(GuestThreadHandle* hThread, uint32_t* s
     return S_OK;
 }
 
-uint32_t reblue::kernel::NtFreeVirtualMemory(uint32_t processHandle, be<uint32_t>* baseAddress, be<uint32_t>* regionSize, uint32_t freeType)
+uint32_t reblue::kernel::NtFreeVirtualMemory(uint32_t processHandle, big_endian<uint32_t>* baseAddress, big_endian<uint32_t>* regionSize, uint32_t freeType)
 {
     LOG_UTILITY("!!! STUB !!!");
 }
 
-uint32_t reblue::kernel::NtAllocateVirtualMemory(uint32_t processHandle, be<uint32_t>* baseAddress, uint32_t zeroBits, be<uint32_t>* regionSize, uint32_t allocationType, uint32_t protect)
+uint32_t reblue::kernel::NtAllocateVirtualMemory(uint32_t processHandle, big_endian<uint32_t>* baseAddress, uint32_t zeroBits, big_endian<uint32_t>* regionSize, uint32_t allocationType, uint32_t protect)
 {
     LOG_UTILITY("!!! STUB !!!");
     return 0;
 }
 
-uint32_t reblue::kernel::NtWaitForSingleObjectEx(uint32_t Handle, uint32_t WaitMode, uint32_t Alertable, be<int64_t>* Timeout)
+uint32_t reblue::kernel::NtWaitForSingleObjectEx(uint32_t Handle, uint32_t WaitMode, uint32_t Alertable, big_endian<int64_t>* Timeout)
 {
     uint32_t timeout = GuestTimeoutToMilliseconds(Timeout);
 
@@ -1049,7 +1049,7 @@ uint32_t reblue::kernel::NtWaitForSingleObjectEx(uint32_t Handle, uint32_t WaitM
     return STATUS_TIMEOUT;
 }
 
-uint32_t reblue::kernel::NtCreateEvent(be<uint32_t>* handle, void* objAttributes, uint32_t eventType, uint32_t initialState)
+uint32_t reblue::kernel::NtCreateEvent(big_endian<uint32_t>* handle, void* objAttributes, uint32_t eventType, uint32_t initialState)
 {
     *handle = GetKernelHandle(CreateKernelObject<Event>(!eventType, !!initialState));
     return 0;
@@ -1060,13 +1060,13 @@ void reblue::kernel::NtDuplicateObject()
     LOG_UTILITY("!!! STUB !!!");
 }
 
-uint32_t reblue::kernel::NtCreateMutant(be<uint32_t>* handle, void* objAttributes, uint32_t initialOwner)
+uint32_t reblue::kernel::NtCreateMutant(big_endian<uint32_t>* handle, void* objAttributes, uint32_t initialOwner)
 {
     *handle = GetKernelHandle(CreateKernelObject<Mutant>(!!initialOwner));
     return STATUS_SUCCESS;
 }
 
-uint32_t reblue::kernel::NtReleaseMutant(Mutant* handle, be<uint32_t>* previousCount)
+uint32_t reblue::kernel::NtReleaseMutant(Mutant* handle, big_endian<uint32_t>* previousCount)
 {
     if (previousCount)
     {
@@ -1133,7 +1133,7 @@ uint32_t reblue::kernel::NtSetEvent(Event* handle, uint32_t* previousState)
     return 0;
 }
 
-uint32_t reblue::kernel::NtCreateSemaphore(be<uint32_t>* Handle, XOBJECT_ATTRIBUTES* ObjectAttributes, uint32_t InitialCount, uint32_t MaximumCount)
+uint32_t reblue::kernel::NtCreateSemaphore(big_endian<uint32_t>* Handle, XOBJECT_ATTRIBUTES* ObjectAttributes, uint32_t InitialCount, uint32_t MaximumCount)
 {
     *Handle = GetKernelHandle(CreateKernelObject<Semaphore>(InitialCount, MaximumCount));
     return STATUS_SUCCESS;

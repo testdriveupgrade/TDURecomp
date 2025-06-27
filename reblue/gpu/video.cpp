@@ -4621,7 +4621,7 @@ static ShaderCacheEntry* FindShaderCacheEntry(XXH64_hash_t hash)
     return findResult != end && findResult->hash == hash ? findResult : nullptr;
 }
 
-static GuestShader* CreateShader(const be<uint32_t>* function, ResourceType resourceType)
+static GuestShader* CreateShader(const big_endian<uint32_t>* function, ResourceType resourceType)
 {
     XXH64_hash_t hash = XXH3_64bits(function, function[1] + function[2]);
 
@@ -5538,8 +5538,8 @@ struct CompilationArgs
 //        }
 //        else 
 //        {
-//            pipelineState.depthBias = (1 << 24) * (*reinterpret_cast<be<float>*>(g_memory.Translate(0x83302760)));
-//            pipelineState.slopeScaledDepthBias = *reinterpret_cast<be<float>*>(g_memory.Translate(0x83302764));
+//            pipelineState.depthBias = (1 << 24) * (*reinterpret_cast<big_endian<float>*>(g_memory.Translate(0x83302760)));
+//            pipelineState.slopeScaledDepthBias = *reinterpret_cast<big_endian<float>*>(g_memory.Translate(0x83302764));
 //        }
 //
 //        pipelineState.colorWriteEnable = 0;
@@ -6385,7 +6385,7 @@ SDLEventListenerForPSOCaching g_sdlEventListenerForPSOCaching;
 #endif
 
 
-uint32_t reblue::gpu::CreateDevice(uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, be<uint32_t>* a6)
+uint32_t reblue::gpu::CreateDevice(uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, big_endian<uint32_t>* a6)
 {
     g_xdbfTextureCache = std::unordered_map<uint16_t, GuestTexture*>();
 
@@ -6526,7 +6526,7 @@ static void reblue::gpu::GetSurfaceDesc(GuestSurface* surface, GuestSurfaceDesc*
     desc->height = surface->height;
 }
 
-static void reblue::gpu::GetVertexDeclaration(GuestVertexDeclaration* vertexDeclaration, GuestVertexElement* vertexElements, be<uint32_t>* count)
+static void reblue::gpu::GetVertexDeclaration(GuestVertexDeclaration* vertexDeclaration, GuestVertexElement* vertexElements, big_endian<uint32_t>* count)
 {
     memcpy(vertexElements, vertexDeclaration->vertexElements.get(), vertexDeclaration->vertexElementCount * sizeof(GuestVertexElement));
     *count = vertexDeclaration->vertexElementCount;
@@ -6700,7 +6700,7 @@ static void reblue::gpu::SetDepthStencilSurface(GuestDevice* device, GuestSurfac
     SetDefaultViewport(device, depthStencil);
 }
 
-static void reblue::gpu::Clear(GuestDevice* device, uint32_t count, be<uint32_t>* pRects, uint32_t flags, uint32_t, be<float>* color, double z, uint32_t stencil, bool EDRAMClear)
+static void reblue::gpu::Clear(GuestDevice* device, uint32_t count, big_endian<uint32_t>* pRects, uint32_t flags, uint32_t, big_endian<float>* color, double z, uint32_t stencil, bool EDRAMClear)
 {
     RenderCommand cmd;
     cmd.type = RenderCommandType::Clear;
@@ -6824,7 +6824,7 @@ static void reblue::gpu::SetVertexDeclaration(GuestDevice* device, GuestVertexDe
     device->vertexDeclaration = reblue::kernel::g_memory.MapVirtual(vertexDeclaration);
 }
 
-static GuestShader* reblue::gpu::CreateVertexShader(const be<uint32_t>* function)
+static GuestShader* reblue::gpu::CreateVertexShader(const big_endian<uint32_t>* function)
 {
     return CreateShader(function, ResourceType::VertexShader);
 }
@@ -6856,7 +6856,7 @@ static void reblue::gpu::SetIndices(GuestDevice* device, GuestBuffer* buffer)
     g_renderQueue.enqueue(cmd);
 }
 
-static GuestShader* reblue::gpu::CreatePixelShader(const be<uint32_t>* function)
+static GuestShader* reblue::gpu::CreatePixelShader(const big_endian<uint32_t>* function)
 {
     return CreateShader(function, ResourceType::PixelShader);
 }
@@ -6919,7 +6919,7 @@ static void reblue::gpu::D3DXFillVolumeTexture(GuestTexture* texture, uint32_t f
 
                 if (function == 0x82BC7820)
                 {
-                    auto src = reinterpret_cast<be<float>*>(data) + index * 4;
+                    auto src = reinterpret_cast<big_endian<float>*>(data) + index * 4;
 
                     float r = static_cast<uint8_t>(src[0] * 255.0f);
                     float g = static_cast<uint8_t>(src[1] * 255.0f);
@@ -7020,7 +7020,7 @@ static void reblue::gpu::MakePictureData(GuestPictureData* pictureData, uint8_t*
     }
 }
 
-static void reblue::gpu::SetResolution(be<uint32_t>* device)
+static void reblue::gpu::SetResolution(big_endian<uint32_t>* device)
 {
     Video::ComputeViewportDimensions();
 
@@ -7034,7 +7034,7 @@ static GuestShader* g_movieVertexShader;
 static GuestShader* g_moviePixelShader;
 static GuestVertexDeclaration* g_movieVertexDeclaration;
 
-static GuestShader* reblue::gpu::CreateMoviePixelShader(be<uint32_t>* hlslShader)
+static GuestShader* reblue::gpu::CreateMoviePixelShader(big_endian<uint32_t>* hlslShader)
 {
     if (g_moviePixelShader == nullptr)
     {
@@ -7047,7 +7047,7 @@ static GuestShader* reblue::gpu::CreateMoviePixelShader(be<uint32_t>* hlslShader
     return g_moviePixelShader;
 }
 
-static GuestShader* reblue::gpu::CreateMovieVertexShader(be<uint32_t>* hlslShader)
+static GuestShader* reblue::gpu::CreateMovieVertexShader(big_endian<uint32_t>* hlslShader)
 {
     if (g_movieVertexShader == nullptr)
     {

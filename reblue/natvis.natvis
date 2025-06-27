@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
-    <Type Name="be&lt;*&gt;">
+    <Type Name="big_endian&lt;*&gt;">
         <DisplayString>{get()}</DisplayString>
         <Expand>
           <Item Name="Value">get()</Item>
