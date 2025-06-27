@@ -201,6 +201,7 @@ set(REBLUE_CXX_SOURCES
     ${REBLUE_USER_CXX_SOURCES}
 #   ${REBLUE_MOD_CXX_SOURCES}
     ${REBLUE_THIRDPARTY_SOURCES}
+    "gpu/gpu_stub.cpp"
 )
 
 include("version.cmake")
