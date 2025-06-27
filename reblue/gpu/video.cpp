@@ -30,7 +30,7 @@
 #include "../../tools/XenosRecomp/XenosRecomp/shader_common.h"
 
 
-/*#include "shader/blend_color_alpha_ps.hlsl.dxil.h"
+#include "shader/blend_color_alpha_ps.hlsl.dxil.h"
 #include "shader/copy_vs.hlsl.dxil.h"
 #include "shader/copy_color_ps.hlsl.dxil.h"
 #include "shader/copy_depth_ps.hlsl.dxil.h"
@@ -78,7 +78,6 @@
 #include "shader/resolve_msaa_depth_2x.hlsl.spirv.h"
 #include "shader/resolve_msaa_depth_4x.hlsl.spirv.h"
 #include "shader/resolve_msaa_depth_8x.hlsl.spirv.h"
-
 
 #ifdef _WIN32
 extern "C"
@@ -6020,7 +6019,7 @@ static void PipelineTaskConsumerThread()
 
         bool allHandled = true;
 
-        for (auto& [type /*, databaseData] : localPipelineTaskQueue)
+        for (auto& [type /*, databaseData*/ ] : localPipelineTaskQueue)
         {
             switch (type)
             {
@@ -6090,7 +6089,7 @@ static void PipelineTaskConsumerThread()
 
             //    break;
             //}
-/*
+
             case PipelineTaskType::PrecompilePipelines:
             {
                 // Deliberately leaving the type null to account for the enqueue
@@ -7061,4 +7060,3 @@ static GuestShader* reblue::gpu::CreateMovieVertexShader(be<uint32_t>* hlslShade
     return g_movieVertexShader;
 }
 
-*/
