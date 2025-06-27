@@ -745,3 +745,28 @@ void* reblue::kernel::XamGetPrivateEnumStructureFromHandle(uint32_t handle)
 {
     return GetKernelObject<void>(handle);
 }
+
+void reblue::kernel::XamSessionRefObjByHandle()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XamSessionCreateHandle()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XamCreateEnumeratorHandle()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XamUserGetMembershipTierFromXUID()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void reblue::kernel::XamUserGetOnlineCountryFromXUID()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
