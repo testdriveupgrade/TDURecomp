@@ -74,13 +74,13 @@ set(REBLUE_CPU_CXX_SOURCES
     "cpu/guest_thread.cpp"
 )
 
-set(REBLUE_GPU_CXX_SOURCES
-    "gpu/video.cpp"
-    "gpu/imgui/imgui_common.cpp"
-    "gpu/imgui/imgui_font_builder.cpp"
-    "gpu/imgui/imgui_snapshot.cpp"
-    "gpu/rhi/plume_vulkan.cpp"
-)
+#set(REBLUE_GPU_CXX_SOURCES
+#    "gpu/video.cpp"
+#    "gpu/imgui/imgui_common.cpp"
+#    "gpu/imgui/imgui_font_builder.cpp"
+#    "gpu/imgui/imgui_snapshot.cpp"
+#    "gpu/rhi/plume_vulkan.cpp"
+#)
 
 #if (UNLEASHED_RECOMP_D3D12)
 #   list(APPEND REBLUE_GPU_CXX_SOURCES
@@ -193,7 +193,7 @@ set(REBLUE_CXX_SOURCES
     ${REBLUE_LOCALE_CXX_SOURCES}
     ${REBLUE_OS_CXX_SOURCES}
     ${REBLUE_CPU_CXX_SOURCES}
-    ${REBLUE_GPU_CXX_SOURCES}
+#    ${REBLUE_GPU_CXX_SOURCES}
     ${REBLUE_APU_CXX_SOURCES}
     ${REBLUE_HID_CXX_SOURCES}
     ${REBLUE_UI_CXX_SOURCES}
@@ -201,6 +201,7 @@ set(REBLUE_CXX_SOURCES
     ${REBLUE_USER_CXX_SOURCES}
 #   ${REBLUE_MOD_CXX_SOURCES}
     ${REBLUE_THIRDPARTY_SOURCES}
+    "gpu/gpu_stub.cpp"
 )
 
 include("version.cmake")
