@@ -29,6 +29,7 @@
 static std::array<std::string_view, 3> g_D3D12RequiredModules =
 {
     "D3D12/D3D12Core.dll",
+    "dxcompiler.dll",
     "dxil.dll"
 };
 #endif
