@@ -164,10 +164,15 @@ int main(int argc, char *argv[])
 #if defined(_WIN32) && defined(UNLEASHED_RECOMP_D3D12)
     for (auto& dll : g_D3D12RequiredModules)
     {
-        if (!std::filesystem::exists(reblueBinPath / dll))
+        auto dllPath = reblueBinPath / dll;
+        if (!std::filesystem::exists(dllPath))
         {
             char text[512];
             snprintf(text, sizeof(text), Localise("System_Win32_MissingDLLs").c_str(), dll.data());
+
+            // Log the missing DLL path so the user knows where to copy it.
+            fprintf(stderr, "Missing %s - expected at: %s\n", dll.data(), dllPath.string().c_str());
+
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, GameWindow::GetTitle(), text, GameWindow::s_pWindow);
             std::_Exit(1);
         }
