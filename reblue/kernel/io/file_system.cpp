@@ -120,7 +120,7 @@ FileHandle* XCreateFileA
     return fileHandle;
 }
 
-static uint32_t XGetFileSizeA(FileHandle* hFile, be<uint32_t>* lpFileSizeHigh)
+static uint32_t XGetFileSizeA(FileHandle* hFile, big_endian<uint32_t>* lpFileSizeHigh)
 {
     std::error_code ec;
     auto fileSize = std::filesystem::file_size(hFile->path, ec);
@@ -159,7 +159,7 @@ uint32_t XReadFile
     FileHandle* hFile,
     void* lpBuffer,
     uint32_t nNumberOfBytesToRead,
-    be<uint32_t>* lpNumberOfBytesRead,
+    big_endian<uint32_t>* lpNumberOfBytesRead,
     XOVERLAPPED* lpOverlapped
 )
 {
@@ -199,7 +199,7 @@ uint32_t XReadFile
     return result;
 }
 
-uint32_t XSetFilePointer(FileHandle* hFile, int32_t lDistanceToMove, be<int32_t>* lpDistanceToMoveHigh, uint32_t dwMoveMethod)
+uint32_t XSetFilePointer(FileHandle* hFile, int32_t lDistanceToMove, big_endian<int32_t>* lpDistanceToMoveHigh, uint32_t dwMoveMethod)
 {
     int32_t distanceToMoveHigh = lpDistanceToMoveHigh ? lpDistanceToMoveHigh->get() : 0;
     std::streamoff streamOffset = lDistanceToMove + (std::streamoff(distanceToMoveHigh) << 32U);
@@ -346,7 +346,7 @@ uint32_t XGetFileAttributesA(const char* lpFileName)
         return INVALID_FILE_ATTRIBUTES;
 }
 
-uint32_t XWriteFile(FileHandle* hFile, const void* lpBuffer, uint32_t nNumberOfBytesToWrite, be<uint32_t>* lpNumberOfBytesWritten, void* lpOverlapped)
+uint32_t XWriteFile(FileHandle* hFile, const void* lpBuffer, uint32_t nNumberOfBytesToWrite, big_endian<uint32_t>* lpNumberOfBytesWritten, void* lpOverlapped)
 {
     assert(lpOverlapped == nullptr && "Overlapped not implemented.");
 

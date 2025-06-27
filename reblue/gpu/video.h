@@ -35,7 +35,7 @@ struct Video
 
 struct GuestSamplerState
 {
-    be<uint32_t> data[6];
+    big_endian<uint32_t> data[6];
 };
 
 enum GuestSamplerStateType
@@ -129,9 +129,9 @@ enum GuestSamplerStateType
 
 struct GuestDevice
 {
-    be<uint64_t> dirtyFlags[3];
+    big_endian<uint64_t> dirtyFlags[3];
 
-    be<uint32_t> setRenderStateFunctions[0x65];
+    big_endian<uint32_t> setRenderStateFunctions[0x65];
     uint32_t setSamplerStateFunctions[0x14];
     uint32_t getRenderStateFunctions[0x65];
     uint32_t getSamplerStateFunctions[0x14];
@@ -143,20 +143,20 @@ struct GuestDevice
     uint32_t vertexShaderFloatConstants[0x400];
     uint32_t pixelShaderFloatConstants[0x400];
 
-    be<uint32_t> vertexShaderBoolConstants[0x4];
-    be<uint32_t> pixelShaderBoolConstants[0x4];
+    big_endian<uint32_t> vertexShaderBoolConstants[0x4];
+    big_endian<uint32_t> pixelShaderBoolConstants[0x4];
 
     uint8_t padding27A0[0x68C];
-    be<uint32_t> vertexDeclaration;
+    big_endian<uint32_t> vertexDeclaration;
     uint8_t padding2E30[0x338];
     struct
     {
-        be<float> x;
-        be<float> y;
-        be<float> width;
-        be<float> height;
-        be<float> minZ;
-        be<float> maxZ;
+        big_endian<float> x;
+        big_endian<float> y;
+        big_endian<float> width;
+        big_endian<float> height;
+        big_endian<float> minZ;
+        big_endian<float> maxZ;
     } viewport;
     uint8_t padding3180[0x1E80];
 };
@@ -179,7 +179,7 @@ enum class ResourceType
 struct GuestResource
 {
     uint32_t unused = 0;
-    be<uint32_t> refCount = 1;
+    big_endian<uint32_t> refCount = 1;
     ResourceType type;
 
     GuestResource(ResourceType type) : type(type) 
@@ -264,18 +264,18 @@ struct GuestTexture : GuestBaseTexture
 
 struct GuestLockedRect
 {
-    be<uint32_t> pitch;
-    be<uint32_t> bits;
+    big_endian<uint32_t> pitch;
+    big_endian<uint32_t> bits;
 };
 
 struct GuestBufferDesc
 {
-    be<uint32_t> format;
-    be<uint32_t> type;
-    be<uint32_t> usage;
-    be<uint32_t> pool;
-    be<uint32_t> size;
-    be<uint32_t> fvf;
+    big_endian<uint32_t> format;
+    big_endian<uint32_t> type;
+    big_endian<uint32_t> usage;
+    big_endian<uint32_t> pool;
+    big_endian<uint32_t> size;
+    big_endian<uint32_t> fvf;
 };
 
 // VertexBuffer/IndexBuffer
@@ -291,14 +291,14 @@ struct GuestBuffer : GuestResource
 
 struct GuestSurfaceDesc
 {
-    be<uint32_t> format;
-    be<uint32_t> type;
-    be<uint32_t> usage;
-    be<uint32_t> pool;
-    be<uint32_t> multiSampleType;
-    be<uint32_t> multiSampleQuality;
-    be<uint32_t> width;
-    be<uint32_t> height;
+    big_endian<uint32_t> format;
+    big_endian<uint32_t> type;
+    big_endian<uint32_t> usage;
+    big_endian<uint32_t> pool;
+    big_endian<uint32_t> multiSampleType;
+    big_endian<uint32_t> multiSampleQuality;
+    big_endian<uint32_t> width;
+    big_endian<uint32_t> height;
 };
 
 // RenderTarget/DepthStencil
@@ -357,9 +357,9 @@ enum GuestDeclUsage
 
 struct GuestVertexElement
 {
-    be<uint16_t> stream;
-    be<uint16_t> offset;
-    be<uint32_t> type;
+    big_endian<uint16_t> stream;
+    big_endian<uint16_t> offset;
+    big_endian<uint32_t> type;
     uint8_t method;
     uint8_t usage;
     uint8_t usageIndex;
@@ -399,29 +399,29 @@ struct GuestShader : GuestResource
 
 struct GuestViewport
 {
-    be<uint32_t> x;
-    be<uint32_t> y;
-    be<uint32_t> width;
-    be<uint32_t> height;
-    be<float> minZ;
-    be<float> maxZ;
+    big_endian<uint32_t> x;
+    big_endian<uint32_t> y;
+    big_endian<uint32_t> width;
+    big_endian<uint32_t> height;
+    big_endian<float> minZ;
+    big_endian<float> maxZ;
 };
 
 struct GuestRect
 {
-    be<int32_t> left;
-    be<int32_t> top;
-    be<int32_t> right;
-    be<int32_t> bottom;
+    big_endian<int32_t> left;
+    big_endian<int32_t> top;
+    big_endian<int32_t> right;
+    big_endian<int32_t> bottom;
 };
 
 struct GuestPictureData
 {
-    be<uint32_t> vtable;
+    big_endian<uint32_t> vtable;
     uint8_t flags;
-    be<uint32_t> name;
-    be<uint32_t> texture;
-    be<uint32_t> type;
+    big_endian<uint32_t> name;
+    big_endian<uint32_t> texture;
+    big_endian<uint32_t> type;
 };
 
 enum GuestRenderState
@@ -523,7 +523,7 @@ extern void VideoConfigValueChangedCallback(class IConfigDef* config);
 
 namespace reblue {
     namespace gpu {
-        extern uint32_t CreateDevice(uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, be<uint32_t>* a6);
+        extern uint32_t CreateDevice(uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, big_endian<uint32_t>* a6);
 
         extern void DestructResource(GuestResource* resource);
 
@@ -539,7 +539,7 @@ namespace reblue {
         extern void GetIndexBufferDesc(GuestBuffer* buffer, GuestBufferDesc* desc);
         extern void GetSurfaceDesc(GuestSurface* surface, GuestSurfaceDesc* desc);
 
-        extern void GetVertexDeclaration(GuestVertexDeclaration* vertexDeclaration, GuestVertexElement* vertexElements, be<uint32_t>* count);
+        extern void GetVertexDeclaration(GuestVertexDeclaration* vertexDeclaration, GuestVertexElement* vertexElements, big_endian<uint32_t>* count);
 
         extern uint32_t HashVertexDeclaration(uint32_t vertexDeclaration);
 
@@ -558,7 +558,7 @@ namespace reblue {
 
         extern void SetDepthStencilSurface(GuestDevice* device, GuestSurface* depthStencil);
 
-        extern void Clear(GuestDevice* device, uint32_t count, be<uint32_t>* pRects, uint32_t flags, uint32_t, be<float>* color, double z, uint32_t stencil, bool EDRAMClear);
+        extern void Clear(GuestDevice* device, uint32_t count, big_endian<uint32_t>* pRects, uint32_t flags, uint32_t, big_endian<float>* color, double z, uint32_t stencil, bool EDRAMClear);
 
         extern void SetViewport(GuestDevice* device, GuestViewport* viewport);
 
@@ -573,7 +573,7 @@ namespace reblue {
 
         extern GuestVertexDeclaration* CreateVertexDeclaration(GuestVertexElement* vertexElements);
         extern void SetVertexDeclaration(GuestDevice* device, GuestVertexDeclaration* vertexDeclaration);
-        extern GuestShader* CreateVertexShader(const be<uint32_t>* function);
+        extern GuestShader* CreateVertexShader(const big_endian<uint32_t>* function);
 
         extern void SetVertexShader(GuestDevice* device, GuestShader* shader);
 
@@ -581,7 +581,7 @@ namespace reblue {
 
         extern void SetIndices(GuestDevice* device, GuestBuffer* buffer);
 
-        extern GuestShader* CreatePixelShader(const be<uint32_t>* function);
+        extern GuestShader* CreatePixelShader(const big_endian<uint32_t>* function);
 
         extern void SetPixelShader(GuestDevice* device, GuestShader* shader);
 
@@ -591,10 +591,10 @@ namespace reblue {
 
         extern void MakePictureData(GuestPictureData* pictureData, uint8_t* data, uint32_t dataSize);
 
-        extern void SetResolution(be<uint32_t>* device);
+        extern void SetResolution(big_endian<uint32_t>* device);
 
-        extern GuestShader* CreateMoviePixelShader(be<uint32_t>* hlslShader);
-        extern GuestShader* CreateMovieVertexShader(be<uint32_t>* hlslShader);
+        extern GuestShader* CreateMoviePixelShader(big_endian<uint32_t>* hlslShader);
+        extern GuestShader* CreateMovieVertexShader(big_endian<uint32_t>* hlslShader);
 
     }
 }

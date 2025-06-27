@@ -157,7 +157,7 @@ void reblue::kernel::XamNotifyEnqueueEvent(uint32_t dwId, uint32_t dwParam)
     }
 }
 
-bool reblue::kernel::XNotifyGetNext(uint32_t hNotification, uint32_t dwMsgFilter, be<uint32_t>* pdwId, be<uint32_t>* pParam)
+bool reblue::kernel::XNotifyGetNext(uint32_t hNotification, uint32_t dwMsgFilter, big_endian<uint32_t>* pdwId, big_endian<uint32_t>* pParam)
 {
     auto& listener = *reblue::kernel::GetKernelObject<XamListener>(hNotification);
 
@@ -198,8 +198,8 @@ bool reblue::kernel::XNotifyGetNext(uint32_t hNotification, uint32_t dwMsgFilter
     return false;
 }
 
-uint32_t reblue::kernel::XamShowMessageBoxUI(uint32_t dwUserIndex, be<uint16_t>* wszTitle, be<uint16_t>* wszText, uint32_t cButtons,
-    xpointer<be<uint16_t>>* pwszButtons, uint32_t dwFocusButton, uint32_t dwFlags, be<uint32_t>* pResult, XXOVERLAPPED* pOverlapped)
+uint32_t reblue::kernel::XamShowMessageBoxUI(uint32_t dwUserIndex, big_endian<uint16_t>* wszTitle, big_endian<uint16_t>* wszText, uint32_t cButtons,
+    xpointer<big_endian<uint16_t>>* pwszButtons, uint32_t dwFocusButton, uint32_t dwFlags, big_endian<uint32_t>* pResult, XXOVERLAPPED* pOverlapped)
 {
     *pResult = cButtons ? cButtons - 1 : 0;
 
@@ -257,7 +257,7 @@ uint32_t reblue::kernel::XamShowMessageBoxUI(uint32_t dwUserIndex, be<uint16_t>*
 }
 
 uint32_t reblue::kernel::XamContentCreateEnumerator(uint32_t dwUserIndex, uint32_t DeviceID, uint32_t dwContentType,
-    uint32_t dwContentFlags, uint32_t cItem, be<uint32_t>* pcbBuffer, be<uint32_t>* phEnum)
+    uint32_t dwContentFlags, uint32_t cItem, big_endian<uint32_t>* pcbBuffer, big_endian<uint32_t>* phEnum)
 {
     if (dwUserIndex != 0)
     {
@@ -277,7 +277,7 @@ uint32_t reblue::kernel::XamContentCreateEnumerator(uint32_t dwUserIndex, uint32
     return 0;
 }
 
-uint32_t reblue::kernel::XamEnumerate(uint32_t hEnum, uint32_t dwFlags, void* pvBuffer, uint32_t cbBuffer, be<uint32_t>* pcItemsReturned, XXOVERLAPPED* pOverlapped)
+uint32_t reblue::kernel::XamEnumerate(uint32_t hEnum, uint32_t dwFlags, void* pvBuffer, uint32_t cbBuffer, big_endian<uint32_t>* pcItemsReturned, XXOVERLAPPED* pOverlapped)
 {
     auto* enumerator = reblue::kernel::GetKernelObject<XamEnumeratorBase>(hEnum);
     const auto count = enumerator->Next(pvBuffer);
@@ -292,7 +292,7 @@ uint32_t reblue::kernel::XamEnumerate(uint32_t hEnum, uint32_t dwFlags, void* pv
 }
 
 uint32_t reblue::kernel::XamContentCreateEx(uint32_t dwUserIndex, const char* szRootName, const XCONTENT_DATA* pContentData,
-    uint32_t dwContentFlags, be<uint32_t>* pdwDisposition, be<uint32_t>* pdwLicenseMask,
+    uint32_t dwContentFlags, big_endian<uint32_t>* pdwDisposition, big_endian<uint32_t>* pdwLicenseMask,
     uint32_t dwFileCacheSize, uint64_t uliContentSize, PXXOVERLAPPED pOverlapped)
 {
     const auto& registry = gContentRegistry[pContentData->dwContentType - 1];
@@ -513,7 +513,7 @@ void reblue::kernel::XamContentDelete()
     LOG_UTILITY("!!! STUB !!!");
 }
 
-uint32_t reblue::kernel::XamContentGetCreator(uint32_t userIndex, const XCONTENT_DATA* contentData, be<uint32_t>* isCreator, be<uint64_t>* xuid, XXOVERLAPPED* overlapped)
+uint32_t reblue::kernel::XamContentGetCreator(uint32_t userIndex, const XCONTENT_DATA* contentData, big_endian<uint32_t>* isCreator, big_endian<uint64_t>* xuid, XXOVERLAPPED* overlapped)
 {
     if (isCreator)
         *isCreator = true;
@@ -548,7 +548,7 @@ void reblue::kernel::XamShowSigninUI()
     LOG_UTILITY("!!! STUB !!!");
 }
 
-uint32_t reblue::kernel::XamShowDeviceSelectorUI(uint32_t userIndex, uint32_t contentType, uint32_t contentFlags, uint64_t totalRequested, be<uint32_t>* deviceId, XXOVERLAPPED* overlapped)
+uint32_t reblue::kernel::XamShowDeviceSelectorUI(uint32_t userIndex, uint32_t contentType, uint32_t contentFlags, uint64_t totalRequested, big_endian<uint32_t>* deviceId, XXOVERLAPPED* overlapped)
 {
     XamNotifyEnqueueEvent(9, true);
     *deviceId = 1;
@@ -591,7 +591,7 @@ void reblue::kernel::XamLoaderLaunchTitle()
     LOG_UTILITY("!!! STUB !!!");
 }
 
-void reblue::kernel::XamUserReadProfileSettings(uint32_t titleId, uint32_t userIndex, uint32_t xuidCount, uint64_t* xuids, uint32_t settingCount, uint32_t* settingIds, be<uint32_t>* bufferSize, void* buffer, void* overlapped)
+void reblue::kernel::XamUserReadProfileSettings(uint32_t titleId, uint32_t userIndex, uint32_t xuidCount, uint64_t* xuids, uint32_t settingCount, uint32_t* settingIds, big_endian<uint32_t>* bufferSize, void* buffer, void* overlapped)
 {
     if (buffer != nullptr)
     {
@@ -644,7 +644,7 @@ uint32_t reblue::kernel::XamUserGetName(uint32_t userIndex, char* userName, uint
     return 0x00000525; // ERROR_NO_SUCH_USER
 }
 
-uint32_t reblue::kernel::XamUserGetXUID(uint32_t userIndex, be<uint64_t>* xuid)
+uint32_t reblue::kernel::XamUserGetXUID(uint32_t userIndex, big_endian<uint64_t>* xuid)
 {
     if (userIndex == 0 && xuid != nullptr)
     {
@@ -665,14 +665,14 @@ void reblue::kernel::XNotifyDelayUI(uint32_t dwMilliseconds)
     (void)dwMilliseconds;
 }
 
-uint32_t reblue::kernel::XamLoaderGetLaunchDataSize(be<uint32_t>* size)
+uint32_t reblue::kernel::XamLoaderGetLaunchDataSize(big_endian<uint32_t>* size)
 {
     if (size)
         *size = 0;
     return 0;
 }
 
-uint32_t reblue::kernel::XamLoaderGetLaunchData(void* buffer, uint32_t bufferSize, be<uint32_t>* size)
+uint32_t reblue::kernel::XamLoaderGetLaunchData(void* buffer, uint32_t bufferSize, big_endian<uint32_t>* size)
 {
     if (size)
         *size = 0;
@@ -716,7 +716,7 @@ uint32_t reblue::kernel::XamShowMarketplaceUI()
     return 0;
 }
 
-uint32_t reblue::kernel::XamContentGetLicenseMask(uint32_t userIndex, be<uint32_t>* mask)
+uint32_t reblue::kernel::XamContentGetLicenseMask(uint32_t userIndex, big_endian<uint32_t>* mask)
 {
     (void)userIndex;
     if (mask)
@@ -724,7 +724,7 @@ uint32_t reblue::kernel::XamContentGetLicenseMask(uint32_t userIndex, be<uint32_
     return 0;
 }
 
-uint32_t reblue::kernel::XamGetOverlappedResult(XXOVERLAPPED* pOverlapped, be<uint32_t>* result, uint32_t wait)
+uint32_t reblue::kernel::XamGetOverlappedResult(XXOVERLAPPED* pOverlapped, big_endian<uint32_t>* result, uint32_t wait)
 {
     (void)wait;
     if (result)

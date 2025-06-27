@@ -110,7 +110,7 @@ void XAudioRegisterClient(PPCFunc* callback, uint32_t param)
 
 void XAudioSubmitFrame(void* samples)
 {
-    auto floatSamples = reinterpret_cast<be<float>*>(samples);
+    auto floatSamples = reinterpret_cast<big_endian<float>*>(samples);
 
     if (g_downMixToStereo)
     {

@@ -36,12 +36,12 @@ namespace endian_util {
     }
 
     template <typename T>
-    struct be
+    struct big_endian
     {
         T value{};
 
-        constexpr be() = default;
-        constexpr be(T v) { set(v); }
+        constexpr big_endian() = default;
+        constexpr big_endian(T v) { set(v); }
 
         constexpr void set(T v) noexcept
         {
@@ -55,6 +55,6 @@ namespace endian_util {
     };
 }
 
-using endian_util::be;
+using endian_util::big_endian;
 using endian_util::byteswap;
 using endian_util::byteswap_inplace;
